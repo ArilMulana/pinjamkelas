@@ -23,6 +23,7 @@ export interface dataMatkul{
     sks:number,
     tipe:tipeMatkul
 }
+
 export interface PaginatedMatkul {
   data: MatkulData[];
   current_page: number;

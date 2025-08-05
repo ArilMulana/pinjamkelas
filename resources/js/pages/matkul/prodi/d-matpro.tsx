@@ -1,19 +1,19 @@
-import { Fakultas, useFakultas } from "@/hooks/fakultas/use-fakultas";
-import {formMatPro, MatProdi, useMatkul } from "@/hooks/matakuliah/use-matakuliah";
+import { Fakultas,  useFakultas } from "@/hooks/fakultas/use-fakultas";
+import {dataMatkul, formMatPro,  useMatkul } from "@/hooks/matakuliah/use-matakuliah";
 import { router } from "@inertiajs/react";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { Combobox } from '@headlessui/react'
 
 
-interface Person {
-  id: number
-  name: string
-}
+// interface Person {
+//   id: number
+//   name: string
+// }
 
 
 export function DMatpro() {
-  const { matkulData, matprodi } = useMatkul();
+  const { matkulData,matprodi } = useMatkul();
   const { fakultas, prodi } = useFakultas();
   const [toggleOpen, setToggleOpen] = useState(false);
   const [isModalOpen, setModalOpen] = useState(false);
@@ -134,49 +134,46 @@ function resetFormMatpro(){
     dataAwalFormMatpro();
     setModalMatpro(false);
 }
- function tambahMatpro(e:React.FormEvent){
-    // setLoading(true);
+function tambahMatpro(e: React.FormEvent) {
     e.preventDefault();
-    router.post(route('matkul-prodi.store'),formDataMatpro,{
-        onSuccess:()=>{
+    // Ambil semua id matkul yang dipilih
+    const matakuliah_ids = selectedMatkul.map((m) => m.id);
+    router.post(route('matkul-prodi.store'), {
+        ...formDataMatpro,
+        matakuliah_ids // array of id
+    }, {
+        onSuccess: () => {
             resetFormMatpro();
-            // setLoading(false);
-            Swal.fire('Sukses','Matakuliah Berhasil ditambahkan','success');
+            Swal.fire('Sukses', 'Matakuliah Berhasil ditambahkan', 'success');
         },
-        onError:()=>{
-            Swal.fire('Gagal','Terjadi Kesalahan dalam Menambahkan data','error');
+        onError: () => {
+            Swal.fire('Gagal', 'Terjadi Kesalahan dalam Menambahkan data', 'error');
         }
-    })
- }
+    });
+}
  function closeMatpro(){
     setModalMatpro(false);
  }
-const allPeople:Person[] = [
-  { id: 1, name: 'Wade Cooper' },
-  { id: 2, name: 'Arlene Mccoy' },
-  { id: 3, name: 'Devon Webb' },
-  { id: 4, name: 'Tom Cook' },
-  { id: 5, name: 'Tanya Fox' },
-]
 
-  const [selectedPeople, setSelectedPeople] = useState<Person[]>([])
+
+  const [selectedMatkul, setSelectedMatkul] = useState<dataMatkul[]>([])
   const [query, setQuery] = useState('')
 
-  const filteredPeople =
+  const filteredMatkul =
     query === ''
-      ? allPeople
-      : allPeople.filter((person) =>
-          person.name.toLowerCase().includes(query.toLowerCase())
+      ? matkulData
+      : matkulData.filter((p) =>
+          p.nama_matakuliah.toLowerCase().includes(query.toLowerCase())
         )
 
 //  const toggleSelection = (people: Person[]) => {
 //   setSelectedPeople(people)
 // }
-const toggleSelection = (person: Person) => {
-  if (selectedPeople.some((p) => p.id === person.id)) {
-    setSelectedPeople(selectedPeople.filter((p) => p.id !== person.id))
+const toggleSelection = (matkul: dataMatkul) => {
+  if (selectedMatkul.some((p) => p.id === matkul.id)) {
+    setSelectedMatkul(selectedMatkul.filter((p) => p.id !== matkul.id))
   } else {
-    setSelectedPeople([...selectedPeople, person])
+    setSelectedMatkul([...selectedMatkul, matkul])
   }
 }
 
@@ -426,135 +423,77 @@ const toggleSelection = (person: Person) => {
                     disabled
                     value={formDataMatpro.program_studi_id ?? ''}
                     onChange={(e) =>
-                    setFormDataMatpro((prev) => ({
-                        ...prev,
-                        program_studi_id: parseInt(e.target.value),
-                    }))
+                        setFormDataMatpro((prev) => ({
+                            ...prev,
+                            program_studi_id: parseInt(e.target.value),
+                        }))
                     }
                     className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-500"
                 >
-                    {matchProdi && (
-                    <optgroup label={matchProdi.fakultas.nama_fakultas}>
-                        {prodi
-                        .filter((p) => p.fakultas.id === matchProdi.fakultas.id)
-                        .map((p) => (
-                            <option key={p.id} value={p.id}>
+                    <option value="">-- Pilih Program Studi --</option>
+                    {prodi.map((p) => (
+                        <option key={p.id} value={p.id}>
                             {p.kode_program_studi} - {p.nama_program_studi}
-                            </option>
-                        ))}
-                    </optgroup>
-                    )}
-                </select>
-                </div>
-
-                {/* Select Mata Kuliah */}
-                <div className="mb-4">
-                <label htmlFor="matakuliah" className="block text-gray-700 mb-2">Mata Kuliah</label>
-                <select
-                    id="matakuliah"
-                    name="matakuliah"
-                    value={formDataMatpro.matakuliah_id ?? ''}
-                    onChange={(e) =>
-                    setFormDataMatpro((prev) => ({
-                        ...prev,
-                        matakuliah_id: parseInt(e.target.value),
-                    }))
-                    }
-                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-500"
-                >
-                    <option value="">-- Pilih Mata Kuliah --</option>
-                    {matkulData.map((data) => (
-                    <option key={data.id} value={data.id}>
-                        {data.nama_matakuliah} - {data.sks} SKS - {data.tipe}
-                    </option>
+                        </option>
                     ))}
                 </select>
                 </div>
-                        {/* <Combobox value={selectedPeople} onChange={toggleSelection} multiple>
-                    <Combobox.Input
-                    onChange={(event) => setQuery(event.target.value)}
-                    className="w-full border p-2"
-                    displayValue={() =>
-                        selectedPeople.map((p) => p.name).join(', ')
-                    }
-                    placeholder="Select people..."
-                    />
 
-                    <Combobox.Options className="border mt-1 max-h-60 overflow-auto">
-                    {filteredPeople.map((person) => (
-                        <Combobox.Option
-                        key={person.id}
-                        value={person}
-                        as="div"
-                        className={({ active }) =>
-                            `cursor-pointer p-2 ${active ? 'bg-blue-100' : ''}`
-                        }
-                        >
-                        <input
-                            type="checkbox"
-                            checked={selectedPeople.some((p) => p.id === person.id)}
-                            readOnly
-                            className="mr-2"
-                        />
-                        {person.name}
-                        </Combobox.Option>
-                    ))}
-                    </Combobox.Options>
-                    </Combobox> */}
+                {/* Select Matkul */}
                  <div className="w-full max-w-md mx-auto">
-            <Combobox value={selectedPeople} multiple>
-                <div className="relative">
-                <Combobox.Input
-                    onChange={(event) => setQuery(event.target.value)}
-                    className="w-full rounded-md border border-gray-300 py-2 px-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                    displayValue={() => selectedPeople.map((p) => p.name).join(', ')}
-                    placeholder="Search and select people..."
-                />
-                <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg">
-                    {filteredPeople.length === 0 ? (
-                    <div className="p-3 text-sm text-gray-500">No matches found.</div>
-                    ) : (
-                    filteredPeople.map((person) => (
-                        <Combobox.Option
-                        key={person.id}
-                        value={person}
-                        as="div"
-                        onClick={(e) => {
-                            e.preventDefault()
-                            toggleSelection(person)
-                        }}
-                        className={({ active }) =>
-                            `flex items-center px-4 py-2 cursor-pointer ${
-                            active ? 'bg-blue-100 text-blue-900' : ''
-                            }`
-                        }
-                        >
-                        <input
-                            type="checkbox"
-                            checked={selectedPeople.some((p) => p.id === person.id)}
-                            readOnly
-                            className="mr-3 accent-blue-600"
+                    <Combobox value={selectedMatkul} multiple>
+                        <div className="relative">
+                        <Combobox.Input
+                            onChange={(event) => setQuery(event.target.value)}
+                            className="w-full rounded-md border border-gray-300 py-2 px-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                            displayValue={() => selectedMatkul.map((p) => p.nama_matakuliah+' ( '+p.sks + ' SKS )').join(', ')}
+                            placeholder="Search and select people..."
                         />
-                        {person.name}
-                        </Combobox.Option>
-                    ))
-                    )}
-                </Combobox.Options>
-                </div>
-            </Combobox>
+                        <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg">
+                            {filteredMatkul.length === 0 ? (
+                            <div className="p-3 text-sm text-gray-500">No matches found.</div>
+                            ) : (
+                            filteredMatkul.map((p) => (
+                                <Combobox.Option
+                                key={p.id}
+                                value={p}
+                                as="div"
+                                onClick={(e) => {
+                                    e.preventDefault()
+                                    toggleSelection(p)
+                                }}
+                                className={({ active }) =>
+                                    `flex items-center px-4 py-2 cursor-pointer ${
+                                    active ? 'bg-blue-100 text-blue-900' : ''
+                                    }`
+                                }
+                                >
+                                <input
+                                    type="checkbox"
+                                    checked={selectedMatkul.some((item) => item.id === p.id)}
+                                    readOnly
+                                    className="mr-3 accent-blue-600"
+                                />
+                                {p.nama_matakuliah}
+                                </Combobox.Option>
+                            ))
+                            )}
+                        </Combobox.Options>
+                        </div>
+                    </Combobox>
 
             {/* Display selected tags */}
-            {selectedPeople.length > 0 && (
+            {selectedMatkul.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2">
-                {selectedPeople.map((person) => (
+                {selectedMatkul.map((item) => (
                     <span
-                    key={person.id}
+                    key={item.id}
                     className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-800"
                     >
-                    {person.name}
+                    {item.nama_matakuliah}  {'('+item.sks +' SKS)'}
                     <button
                         onClick={() =>
-                        setSelectedPeople(selectedPeople.filter((p) => p.id !== person.id))
+                        setSelectedMatkul(selectedMatkul.filter((p) => p.id !== item.id))
                         }
                         className="ml-2 text-blue-500 hover:text-blue-700"
                     >

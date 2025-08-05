@@ -29,16 +29,20 @@ class MatakuliahProgramStudiController extends Controller
 
       public function store(Request $request)
     {
-          $validated = $request->validate([
+
+            $validated = $request->validate([
         'program_studi_id' => 'required|exists:program_studis,id',
-        'matakuliah_id' => 'required|exists:mata_kuliahs,id',
-      ]);
+        'matakuliah_ids' => 'required|array',
+        'matakuliah_ids.*' => 'exists:mata_kuliahs,id',
+    ]);
 
-
-        MatakuliahProgramStudi::createMatkulProdi($validated);
-
-        // return redirect()->route('fakultas')->with('success', 'Program Studi berhasil ditambahkan');
-        return redirect()->back()->with('success', 'Program Studi berhasil ditambahkan');
+    foreach ($validated['matakuliah_ids'] as $matkulId) {
+        MatakuliahProgramStudi::create([
+            'program_studi_id' => $validated['program_studi_id'],
+            'matakuliah_id' => $matkulId,
+        ]);
+    }
+    return redirect()->back()->with('success', 'Program Studi berhasil ditambahkan');
     }
 
 
