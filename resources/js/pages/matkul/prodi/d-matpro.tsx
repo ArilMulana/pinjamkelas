@@ -138,6 +138,7 @@ function resetFormMatpro(){
 }
 function tambahMatpro(e: React.FormEvent) {
     e.preventDefault();
+       setLoading(true);
     // Ambil semua id matkul yang dipilih
     const matakuliah_ids = selectedMatkul.map((m) => m.id);
     router.post(route('matkul-prodi.store'), {
@@ -146,6 +147,7 @@ function tambahMatpro(e: React.FormEvent) {
     }, {
         onSuccess: () => {
             resetFormMatpro();
+               setLoading(false);
             Swal.fire('Sukses', 'Matakuliah Berhasil ditambahkan', 'success');
         },
         onError: () => {
@@ -474,11 +476,12 @@ useEffect(() => { setCurrentPage(1); }, [search]);
                 >
                   Batal
                 </button>
-                <button
+                  <button
                   type="submit"
                   className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  style={{ cursor:loading?'progress':'pointer' }}
                 >
-                  Save
+                 {loading?'Menyimpan...':'Simpan' }
                 </button>
               </div>
             </form>
@@ -597,10 +600,11 @@ useEffect(() => { setCurrentPage(1); }, [search]);
                     Cancel
                 </button>
                 <button
-                    type="submit"
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  style={{ cursor:loading?'progress':'pointer' }}
                 >
-                    Kirim
+                 {loading?'Menyimpan...':'Simpan' }
                 </button>
                 </div>
             </div>
