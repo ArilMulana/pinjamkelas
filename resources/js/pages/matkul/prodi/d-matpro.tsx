@@ -133,6 +133,8 @@ const [isModalMatpro,setModalMatpro] = useState(false);
 function resetFormMatpro(){
     dataAwalFormMatpro();
     setModalMatpro(false);
+    setSelectedMatkul([]); // reset pilihan matkul
+    setQuery('');
 }
 function tambahMatpro(e: React.FormEvent) {
     e.preventDefault();
@@ -152,12 +154,13 @@ function tambahMatpro(e: React.FormEvent) {
     });
 }
  function closeMatpro(){
-    setModalMatpro(false);
+    resetFormMatpro();
  }
 
 
   const [selectedMatkul, setSelectedMatkul] = useState<dataMatkul[]>([])
   const [query, setQuery] = useState('')
+  const [search,setSearch] = useState('');
 
   const filteredMatkul =
     query === ''
@@ -166,9 +169,6 @@ function tambahMatpro(e: React.FormEvent) {
           p.nama_matakuliah.toLowerCase().includes(query.toLowerCase())
         )
 
-//  const toggleSelection = (people: Person[]) => {
-//   setSelectedPeople(people)
-// }
 const toggleSelection = (matkul: dataMatkul) => {
   if (selectedMatkul.some((p) => p.id === matkul.id)) {
     setSelectedMatkul(selectedMatkul.filter((p) => p.id !== matkul.id))
@@ -176,7 +176,28 @@ const toggleSelection = (matkul: dataMatkul) => {
     setSelectedMatkul([...selectedMatkul, matkul])
   }
 }
+const [currentPage, setCurrentPage] = useState(1);
+const itemsPerPage = 5;
+// Filter berdasarkan prodi yang dipilih
+const filteredByProdi = matprodi.filter((p) => p.program_studi_id === isEdit);
 
+// Lalu filter search
+const filteredMatkulprodi = search === ''
+  ? filteredByProdi
+  : filteredByProdi.filter((p) =>
+      p.matakuliah.nama_matakuliah.toLowerCase().includes(search.toLowerCase()) ||
+      p.matakuliah.kode_matakuliah.toLowerCase().includes(search.toLowerCase())
+    );
+
+// Pagination
+const totalItems = filteredMatkulprodi.length;
+const totalPages = Math.ceil(totalItems / itemsPerPage);
+const paginatedMatkulprodi = filteredMatkulprodi.slice(
+  (currentPage - 1) * itemsPerPage,
+  currentPage * itemsPerPage
+);
+
+useEffect(() => { setCurrentPage(1); }, [search]);
   return (
     <>
       {!toggleOpen ? (
@@ -246,13 +267,15 @@ const toggleSelection = (matkul: dataMatkul) => {
           <div className="flex items-center justify-between mb-4 gap-4">
             <input
               type="text"
+              value={search}
+              onChange={(e)=>setSearch(e.target.value)}
               placeholder="Cari Matakuliah"
               className="w-80 px-4 py-2 rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button
               type="button"
             onClick={() => {
-                console.log(isEdit);
+                //console.log(isEdit);
             if (isEdit !== null) {
                 OpenMatpro(isEdit);
             }
@@ -268,18 +291,28 @@ const toggleSelection = (matkul: dataMatkul) => {
               <tr>
                 <th className="px-4 py-2 text-left w-[5%]">No</th>
                 <th className="px-4 py-2 text-left w-[15%]">Kode</th>
-                <th className="px-4 py-2 text-left w-[50%]">Matakuliah</th>
+                <th className="px-4 py-2 text-left w-[40%]">Matakuliah</th>
+                <th className="px-4 py-2 text-left w-[5%]">SKS</th>
+                <th className="px-4 py-2 text-left w-[10%]">Tipe</th>
                 <th className="px-4 py-2 text-left w-[30%]">Aksi</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-       {matprodi
+       {paginatedMatkulprodi
           .filter((p) => p.program_studi_id === isEdit)
         .map((filteredMatProdi, index) => (
             <tr key={filteredMatProdi.id}>
-            <td className="px-4 py-2">{index + 1}</td>
+            <td className="px-4 py-2">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="px-4 py-2">{filteredMatProdi.matakuliah.kode_matakuliah}</td>
             <td className="px-4 py-2">{filteredMatProdi.matakuliah.nama_matakuliah}</td>
+            <td className="px-4 py-2">{filteredMatProdi.matakuliah.sks}</td>
+            <td className="px-4 py-2">
+                {filteredMatProdi.matakuliah.tipe === 'wajib' ? (
+                    <span className="text-green-600 font-semibold">Wajib</span>
+                ) : (
+                    <span className="text-blue-600 font-semibold">Umum</span>
+                )}
+            </td>
             <td className="px-4 py-2 space-x-2">
                 <button
                 className="cursor-pointer ease-in-out hover:-translate-y-1 hover:scale-110 inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-sm text-indigo-600 hover:bg-indigo-100 hover:text-indigo-800 transition"
@@ -299,17 +332,65 @@ const toggleSelection = (matkul: dataMatkul) => {
 
             </tbody>
           </table>
-
-          <div className="px-2 py-1">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mt-6">
+           <div className="mt-4 flex justify-between items-center">
             <button
-              type="button"
-              onClick={() => setToggleOpen(false)}
-              className="cursor-pointer flex items-center gap-2 rounded-md bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 shadow transition duration-200"
+                className={`px-3 py-1 rounded-md text-sm ${
+                currentPage === 1 || totalItems === 0
+                    ? 'text-gray-400 cursor-not-allowed'
+                    : 'text-indigo-600 hover:bg-indigo-100 cursor-pointer'
+                }`}
+                onClick={() => {
+                if (currentPage > 1 && totalItems > 0) setCurrentPage(currentPage - 1);
+                }}
+                disabled={currentPage === 1 || totalItems === 0}
             >
-              <i className="fa fa-arrow-left"></i>
-              <span>Back</span>
+                Prev
             </button>
-          </div>
+
+            <div className="space-x-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                    key={page}
+                    className={`px-3 py-1 rounded-md text-sm font-medium ${
+                    page === currentPage
+                        ? 'bg-indigo-600 text-white'
+                        : 'text-indigo-600 hover:bg-indigo-100'
+                    }`}
+                    onClick={() => setCurrentPage(page)}
+                    disabled={totalItems === 0}
+                >
+                    {page}
+                </button>
+                ))}
+            </div>
+
+            <button
+                className={`px-3 py-1 rounded-md text-sm ${
+                currentPage === totalPages || totalItems === 0
+                    ? 'text-gray-400 cursor-not-allowed'
+                    : 'text-indigo-600 hover:bg-indigo-100 cursor-pointer'
+                }`}
+                onClick={() => {
+                if (currentPage < totalPages && totalItems > 0) setCurrentPage(currentPage + 1);
+                }}
+                disabled={currentPage === totalPages || totalItems === 0}
+            >
+                Next
+            </button>
+            </div>
+
+            <div>
+                <button
+                type="button"
+                onClick={() => setToggleOpen(false)}
+                className="cursor-pointer flex items-center gap-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 shadow transition duration-200"
+                >
+                <i className="fa fa-arrow-left"></i>
+                <span>Kembali</span>
+                </button>
+            </div>
+            </div>
         </div>
       )}
 
@@ -441,6 +522,7 @@ const toggleSelection = (matkul: dataMatkul) => {
 
                 {/* Select Matkul */}
                  <div className="w-full max-w-md mx-auto">
+                     <label htmlFor="matkul" className="block text-gray-700 mb-2">Matakuliah </label>
                     <Combobox value={selectedMatkul} multiple>
                         <div className="relative">
                         <Combobox.Input
@@ -464,7 +546,7 @@ const toggleSelection = (matkul: dataMatkul) => {
                                 }}
                                 className={({ active }) =>
                                     `flex items-center px-4 py-2 cursor-pointer ${
-                                    active ? 'bg-blue-100 text-blue-900' : ''
+                                    active ? 'bg-blue-500 text-blue-900' : ''
                                     }`
                                 }
                                 >
