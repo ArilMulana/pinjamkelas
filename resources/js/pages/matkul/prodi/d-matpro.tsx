@@ -12,7 +12,10 @@ export function DMatpro() {
   const [isModalOpen, setModalOpen] = useState(false);
   const [isEdit, setEditId] = useState<number | null>(null);
   const [isEditMatkulProdi, setEditMatkulProdiId] = useState<number | null>(null);
-  const [selectedFakultas, setSelectedFakultas] = useState<Fakultas | null>(null);
+  const [selectedFakultas
+    // , setSelectedFakultas
+] = useState<Fakultas | null>(null);
+
   const [loading, setLoading] = useState(false);
   const [selectedMatpro,setSelectedMatpro] = useState <formMatPro | null >(null);
 const [isModalMatpro,setModalMatpro] = useState(false);

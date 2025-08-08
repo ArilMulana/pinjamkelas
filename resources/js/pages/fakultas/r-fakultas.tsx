@@ -6,13 +6,16 @@ import Swal from 'sweetalert2';
 export function RFakultas() {
     const {fakultas,prodi} = useFakultas();
     const [loading, setLoading] = useState(false);
-    const {itemsPerPage,search, setSearch, filteredFakultas,currentPage,setCurrentPage,currentItems,totalPages} = useSearchFakultas();
+    const {itemsPerPage,search, setSearch,
+        //filteredFakultas,
+        currentPage,setCurrentPage,currentItems,totalPages} = useSearchFakultas();
     //modal form
 
     const [isEditMode, setIsEditMode] = useState(false);
     const [isModalOpen,setModalOpen] = useState(false);
     const [EditId,setEditId] = useState<number|null>(null); //deklare setEditId untuk mengambil data fakultasid
-    const [data, setData] = useState<Fakultas[]>(fakultas);
+    const [//data
+        , setData] = useState<Fakultas[]>(fakultas);
     //edit
 
     const [formData,setFormData] = useState({kode_fakultas:'', nama_fakultas:''}); // mengambil data pada form
@@ -52,8 +55,11 @@ export function RFakultas() {
 
     const [selectedProdi,setSelectedProdi] = useState<Prodi|null >(null);
 
-    const [selectedProdiNew,setSelectedProdiNew] = useState<Prodi|null >(null); //untuk tidak ada prodi pada fakultas
-     const [dataProdi, setDataProdi] = useState<Prodi[]>(prodi);
+    const [selectedProdiNew,
+        //setSelectedProdiNew
+    ] = useState<Prodi|null >(null); //untuk tidak ada prodi pada fakultas
+     const [//dataProdi
+        , setDataProdi] = useState<Prodi[]>(prodi);
 
     //form tambah prodi jika
 

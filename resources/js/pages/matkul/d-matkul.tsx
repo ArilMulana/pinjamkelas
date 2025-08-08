@@ -1,4 +1,4 @@
-import { useFakultas } from "@/hooks/fakultas/use-fakultas";
+//import { useFakultas } from "@/hooks/fakultas/use-fakultas";
 import { dataMatkul, MatkulData, tipeMatkul, useMatkul } from "@/hooks/matakuliah/use-matakuliah";
 import DataTable from "@/hooks/datatables/use-datatables";
 import { ColumnDef } from "@tanstack/react-table";
@@ -9,9 +9,10 @@ import { router } from "@inertiajs/react";
 
 export function DMatkul() {
   const { matkul } = useMatkul();
-  const { fakultas, prodi } = useFakultas();
+  //const { fakultas, prodi } = useFakultas();
   const fileInputRef = useRef<HTMLInputElement>(null);
- const [data, setData] = useState<dataMatkul[]>(matkul.data);
+ const [//data
+    , setData] = useState<dataMatkul[]>(matkul.data);
  const [loading, setLoading] = useState(false);
  const [isModalOpen,setModalOpen] = useState(false);
   const [isEditMode,setEditMode] = useState(false);
