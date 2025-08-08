@@ -70,6 +70,8 @@ Route::middleware(['auth', 'verified','role:1'])->group(function () {
     //matakuliah program studi
     Route::get('/dashboard/matkul/prodi',[MatakuliahProgramStudiController::class,'index'])->name('matkul-prodi');
     Route::post('/dashboard/matkul/prodi/create/process',[MatakuliahProgramStudiController::class,'store'])->name('matkul-prodi.store');
+    Route::put('/dashboard/matkul/prodi/{matakuliahProgramStudi}',[MatakuliahProgramStudiController::class,'update'])->name('matkul-prodi.update');
+    Route::delete('/dashboard/matkul/prodi/{id}',[MatakuliahProgramStudiController::class,'destroy'])->name('matkul-prodi.destroy');
 });
 
 

@@ -45,6 +45,16 @@ class MatakuliahProgramStudiController extends Controller
     return redirect()->back()->with('success', 'Program Studi berhasil ditambahkan');
     }
 
+    public function update(Request $request,$id)
+    {
+        $validated = $request->validate([
+            'program_studi_id' => 'required|exists:program_studis,id',
+            'matakuliah_id' => 'required|exists:mata_kuliahs,id',
+        ]);
+        $matakuliahProgramStudi = MatakuliahProgramStudi::findOrFail($id);
+        $matakuliahProgramStudi->update($validated);
 
+        return redirect()->back()->with('success', 'Data Matakuliah Program Studi berhasil diperbarui');
+    }
 
 }

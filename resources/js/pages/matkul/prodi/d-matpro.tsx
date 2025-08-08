@@ -5,20 +5,13 @@ import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { Combobox } from '@headlessui/react'
 
-
-// interface Person {
-//   id: number
-//   name: string
-// }
-
-
 export function DMatpro() {
   const { matkulData,matprodi } = useMatkul();
   const { fakultas, prodi } = useFakultas();
   const [toggleOpen, setToggleOpen] = useState(false);
   const [isModalOpen, setModalOpen] = useState(false);
   const [isEdit, setEditId] = useState<number | null>(null);
-//   const [isEditProdi, setEditProdiId] = useState<number | null>(null);
+  const [isEditMatkulProdi, setEditMatkulProdiId] = useState<number | null>(null);
   const [selectedFakultas, setSelectedFakultas] = useState<Fakultas | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedMatpro,setSelectedMatpro] = useState <formMatPro | null >(null);
@@ -123,6 +116,7 @@ const [isModalMatpro,setModalMatpro] = useState(false);
   }
   const matchProdi = prodi.find((p) => p.id === isEdit);
  function OpenMatpro(id:number){
+    setEditIdMatkulProdi(false);
     setModalMatpro(true);
     setEditId(id);
       setFormDataMatpro((prev) => ({
@@ -136,24 +130,44 @@ function resetFormMatpro(){
     setSelectedMatkul([]); // reset pilihan matkul
     setQuery('');
 }
+
+
 function tambahMatpro(e: React.FormEvent) {
     e.preventDefault();
-       setLoading(true);
-    // Ambil semua id matkul yang dipilih
-    const matakuliah_ids = selectedMatkul.map((m) => m.id);
-    router.post(route('matkul-prodi.store'), {
-        ...formDataMatpro,
-        matakuliah_ids // array of id
-    }, {
-        onSuccess: () => {
-            resetFormMatpro();
-               setLoading(false);
-            Swal.fire('Sukses', 'Matakuliah Berhasil ditambahkan', 'success');
-        },
-        onError: () => {
-            Swal.fire('Gagal', 'Terjadi Kesalahan dalam Menambahkan data', 'error');
-        }
-    });
+    setLoading(true);
+    console.log(isEditMatkulProdi);
+    if (editIdMatkulProdi && isEditMatkulProdi !== null) {
+        // Edit (update)
+        router.put(route('matkul-prodi.update', isEditMatkulProdi), {
+            ...formDataMatpro,
+        }, {
+            onSuccess: () => {
+                // closeMatpro();
+                setModalMatpro(false);
+                setLoading(false);
+                Swal.fire('Sukses', 'Matakuliah Berhasil diupdate', 'success');
+            },
+            onError: () => {
+                Swal.fire('Gagal', 'Terjadi Kesalahan dalam Mengupdate data', 'error');
+            }
+        });
+    } else {
+        // Tambah (create)
+        const matakuliah_ids = selectedMatkul.map((m) => m.id);
+        router.post(route('matkul-prodi.store'), {
+            ...formDataMatpro,
+            matakuliah_ids // array of id
+        }, {
+            onSuccess: () => {
+                resetFormMatpro();
+                setLoading(false);
+                Swal.fire('Sukses', 'Matakuliah Berhasil ditambahkan', 'success');
+            },
+            onError: () => {
+                Swal.fire('Gagal', 'Terjadi Kesalahan dalam Menambahkan data', 'error');
+            }
+        });
+    }
 }
  function closeMatpro(){
     resetFormMatpro();
@@ -200,6 +214,24 @@ const paginatedMatkulprodi = filteredMatkulprodi.slice(
 );
 
 useEffect(() => { setCurrentPage(1); }, [search]);
+
+const namaProdi = prodi.find((p) => p.id === isEdit)?.nama_program_studi || '';
+const [editIdMatkulProdi, setEditIdMatkulProdi] = useState(false);
+
+function editMatkulProdi(id: number) {
+    setEditIdMatkulProdi(true);
+    setEditMatkulProdiId(id);
+  const selectedMatkulProdi = matprodi.find((p) => p.id === id);
+  if (selectedMatkulProdi) {
+    setSelectedMatpro(selectedMatkulProdi);
+    setFormDataMatpro({
+      program_studi_id: selectedMatkulProdi.program_studi_id,
+      matakuliah_id: selectedMatkulProdi.matakuliah_id,
+    });
+    setModalMatpro(true);
+  }
+}
+
   return (
     <>
       {!toggleOpen ? (
@@ -265,7 +297,7 @@ useEffect(() => { setCurrentPage(1); }, [search]);
         </div>
       ) : (
         <div className="container mx-auto p-6 text-black bg-white">
-          <h1 className="text-xl font-semibold mb-4">Daftar Matakuliah Program Studi</h1>
+          <h1 className="text-xl font-semibold mb-4">Daftar Matakuliah Program Studi {namaProdi}</h1>
           <div className="flex items-center justify-between mb-4 gap-4">
             <input
               type="text"
@@ -317,6 +349,7 @@ useEffect(() => { setCurrentPage(1); }, [search]);
             </td>
             <td className="px-4 py-2 space-x-2">
                 <button
+                onClick={() => editMatkulProdi(filteredMatProdi.id)}
                 className="cursor-pointer ease-in-out hover:-translate-y-1 hover:scale-110 inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-sm text-indigo-600 hover:bg-indigo-100 hover:text-indigo-800 transition"
                 >
                 <i className="fa fa-edit"></i>
@@ -522,8 +555,42 @@ useEffect(() => { setCurrentPage(1); }, [search]);
                     ))}
                 </select>
                 </div>
-
-                {/* Select Matkul */}
+                {editIdMatkulProdi ? (
+             <div className="mb-4">
+                <label htmlFor="Matkul" className="block text-gray-700 mb-2">Matakuliah</label>
+                <select
+                    value={formDataMatpro.matakuliah_id ?? ''}
+                    onChange={(e) =>
+                    setFormDataMatpro({
+                        program_studi_id: formDataMatpro.program_studi_id,
+                        matakuliah_id: Number(e.target.value),
+                    })
+                    }
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-500"
+                >
+                    <option value="">-- Pilih Matakuliah --</option>
+                    {/* Jika sedang edit, tampilkan option matakuliah yang sedang diedit di urutan paling atas */}
+                    {editIdMatkulProdi && formDataMatpro.matakuliah_id
+                    ? (() => {
+                        const current = matkulData.find(m => m.id === formDataMatpro.matakuliah_id);
+                        return current ? (
+                            <option key={current.id} value={current.id}>
+                            {current.kode_matakuliah} - {current.nama_matakuliah} ({current.sks} SKS)
+                            </option>
+                        ) : null;
+                        })()
+                    : null}
+                    {/* Tampilkan semua matakuliah, kecuali yang sedang diedit (agar tidak dobel) */}
+                    {matkulData
+                    .filter(m => !editIdMatkulProdi || m.id !== formDataMatpro.matakuliah_id)
+                    .map(matkul => (
+                        <option key={matkul.id} value={matkul.id}>
+                        {matkul.kode_matakuliah} - {matkul.nama_matakuliah} ({matkul.sks} SKS)
+                        </option>
+                    ))}
+                </select>
+                </div>
+            ) : (
                  <div className="w-full max-w-md mx-auto">
                      <label htmlFor="matkul" className="block text-gray-700 mb-2">Matakuliah </label>
                     <Combobox value={selectedMatkul} multiple>
@@ -589,12 +656,14 @@ useEffect(() => { setCurrentPage(1); }, [search]);
                 </div>
             )}
             </div>
+)}
 
                 {/* Tombol Aksi */}
                 <div className="flex justify-end space-x-2">
                 <button
                     type="button"
-                    onClick={closeMatpro}
+                   onClick={closeMatpro}
+                //    onClick={() => setModalMatpro(false)}
                     className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
                 >
                     Cancel
