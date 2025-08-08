@@ -5,6 +5,9 @@ import { RGedung } from '@/pages/building/r-gedung';
 export default function Index() {
     return(
         <Dashboard>
+            <head>
+                <title>Gedung</title>
+            </head>
             <RGedung>
                 {/* <Testtable> */}
 

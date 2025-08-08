@@ -1,6 +1,6 @@
 import { Fakultas,  useFakultas } from "@/hooks/fakultas/use-fakultas";
 import {dataMatkul, formMatPro,  useMatkul } from "@/hooks/matakuliah/use-matakuliah";
-import { router } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { Combobox } from '@headlessui/react'
@@ -118,6 +118,7 @@ const [isModalMatpro,setModalMatpro] = useState(false);
     });
   }
   const matchProdi = prodi.find((p) => p.id === isEdit);
+
  function OpenMatpro(id:number){
     setEditIdMatkulProdi(false);
     setModalMatpro(true);
@@ -235,8 +236,32 @@ function editMatkulProdi(id: number) {
   }
 }
 
+function deleteMatkulProdi(id: number) {
+    Swal.fire({
+        title: 'Konfirmasi Hapus',
+        text: 'Apakah Anda yakin ingin menghapus matakuliah ini?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Hapus',
+        cancelButtonText: 'Batal',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            router.delete(route('matkul-prodi.destroy', id), {
+                onSuccess: () => {
+                    Swal.fire('Sukses', 'Matakuliah berhasil dihapus', 'success');
+                },
+                onError: () => {
+                    Swal.fire('Gagal', 'Terjadi kesalahan saat menghapus matakuliah', 'error');
+
+                }
+            });
+        }
+    });
+}
+
   return (
     <>
+        <Head title="Akademik" />
       {!toggleOpen ? (
         <div className="container mx-auto p-6 text-black bg-white">
           <h1 className="text-xl font-semibold mb-4">Daftar Fakultas Program Studi</h1>
@@ -359,6 +384,7 @@ function editMatkulProdi(id: number) {
                 <span>Edit</span>
                 </button>
                 <button
+                onClick={() => deleteMatkulProdi(filteredMatProdi.id)}
                 className="cursor-pointer ease-in-out hover:-translate-y-1 hover:scale-110 inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-sm text-red-600 hover:bg-red-100 hover:text-red-800 transition"
                 >
                 <i className="fa fa-trash"></i>
@@ -594,7 +620,7 @@ function editMatkulProdi(id: number) {
                 </select>
                 </div>
             ) : (
-                 <div className="w-full max-w-md mx-auto">
+                 <div className="w-full max-w-md mx-auto mb-3">
                      <label htmlFor="matkul" className="block text-gray-700 mb-2">Matakuliah </label>
                     <Combobox value={selectedMatkul} multiple>
                         <div className="relative">
@@ -637,28 +663,28 @@ function editMatkulProdi(id: number) {
                         </div>
                     </Combobox>
 
-            {/* Display selected tags */}
-            {selectedMatkul.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                {selectedMatkul.map((item) => (
-                    <span
-                    key={item.id}
-                    className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-800"
-                    >
-                    {item.nama_matakuliah}  {'('+item.sks +' SKS)'}
-                    <button
-                        onClick={() =>
-                        setSelectedMatkul(selectedMatkul.filter((p) => p.id !== item.id))
-                        }
-                        className="ml-2 text-blue-500 hover:text-blue-700"
-                    >
-                        &times;
-                    </button>
-                    </span>
-                ))}
+                {/* Display selected tags */}
+                {selectedMatkul.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                    {selectedMatkul.map((item) => (
+                        <span
+                        key={item.id}
+                        className="inline-flex items-center rounded-full bg-blue-100 px-3 py-2 text-sm text-blue-800"
+                        >
+                        {item.nama_matakuliah}  {'('+item.sks +' SKS)'}
+                        <button
+                            onClick={() =>
+                            setSelectedMatkul(selectedMatkul.filter((p) => p.id !== item.id))
+                            }
+                            className="ml-2 text-blue-500 hover:text-blue-700"
+                        >
+                            &times;
+                        </button>
+                        </span>
+                    ))}
+                    </div>
+                )}
                 </div>
-            )}
-            </div>
 )}
 
                 {/* Tombol Aksi */}

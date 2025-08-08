@@ -369,7 +369,7 @@ useEffect(() => {
                 placeholder="Cari Fakultas...."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="text-black w-full sm:w-1/3 px-3 py-2 mb-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-80 px-4 py-2 rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
             />
 
             {/* Table */}
@@ -413,7 +413,8 @@ useEffect(() => {
                                      className="text-blue-900 cursor-pointer transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 flex items-center space-x-2 ml-4"
                                 >
                                      <span className="fa fa-arrow-right"></span>
-                                    Program Studi
+                                    Tidak ada Program Studi
+                                    <span className="text-sm ml-1 font-semibold text-red-600"> (Tambah)</span>
                                 </button>
                                 )}
                             </td>

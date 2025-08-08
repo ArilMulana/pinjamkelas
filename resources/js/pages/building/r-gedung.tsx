@@ -118,7 +118,7 @@ export function RGedung() {
           setSearch(e.target.value);
           setCurrentPage(1);
         }}
-        className="text-black w-full sm:w-1/3 px-3 py-2 mb-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        className="w-80 px-4 py-2 rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
       />
 
       {/* Table */}
@@ -213,7 +213,7 @@ export function RGedung() {
       </div>
      {/* Modal Edit */}
 {showModal && selectedGedung && (
-  <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50 p-4">
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
     <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-lg">
       <h2 className="text-2xl font-semibold mb-6 text-gray-900">Edit Gedung</h2>
       <form onSubmit={handleModalSubmit} className="space-y-5">

@@ -1,16 +1,16 @@
 import Dashboard from "@/pages/dashboard";
 //import { DFloor } from '@/pages/floor/d-floor';
-import { DMatpro } from "./d-matpro";
+import { JadwalMatkul } from "./d-matkul";
 
 export default function Index() {
     return(
         <Dashboard>
             <head>
-                <title>Matakuliah Prodi</title>
+                <title>Jadwal Matakuliah</title>
             </head>
-           <DMatpro
+            <JadwalMatkul>
 
-            />
+            </JadwalMatkul>
         </Dashboard>
     );
 }

@@ -67,9 +67,14 @@ const mainNavItems: NavItem[] = [
       },
 
       {
-        title:'Matakuliah Program Studi',
+        title:'Matakuliah Per Program Studi',
         href:'/dashboard/matkul/prodi',
         routeName:'Matakuliah Prodi'
+      },
+      {
+        title:'Jadwal Matakuliah',
+        href:'/dashboard/matkul/jadwal',
+        routeName:'jadwal-matkul'
       }
     ],
   },

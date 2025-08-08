@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\JadwalRuangan;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class JadwalRuanganController extends Controller
 {
@@ -12,7 +13,12 @@ class JadwalRuanganController extends Controller
      */
     public function index()
     {
-        //
+        // Logic to retrieve and display the jadwal ruangan
+        $jadwalRuangan = JadwalRuangan::all(); // Example, adjust as needed
+        return Inertia::render('jadwal/index', [
+            'jadwalRuangan' => $jadwalRuangan,
+        ]);
+
     }
 
     /**

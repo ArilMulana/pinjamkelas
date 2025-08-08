@@ -4,7 +4,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { ReactNode } from 'react';
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import Swal from 'sweetalert2';
+
 
 interface DashboardProps{
     children:ReactNode;
@@ -22,7 +22,7 @@ export default function Dashboard({ children }:DashboardProps) {
     return (
 
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Dashboard" />
+            {/* <Head title="Dashboard" /> */}
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
                 <div className="bg-gray-100 relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
                     {/* <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" /> */}

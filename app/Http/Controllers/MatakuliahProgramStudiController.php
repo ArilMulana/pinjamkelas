@@ -56,5 +56,12 @@ class MatakuliahProgramStudiController extends Controller
 
         return redirect()->back()->with('success', 'Data Matakuliah Program Studi berhasil diperbarui');
     }
+    public function destroy($id)
+    {
+        $matakuliahProgramStudi = MatakuliahProgramStudi::findOrFail($id);
+        $matakuliahProgramStudi->delete();
+
+        return redirect()->back()->with('success', 'Data Matakuliah Program Studi berhasil dihapus');
+    }
 
 }
