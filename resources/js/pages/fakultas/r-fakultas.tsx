@@ -456,9 +456,17 @@ useEffect(() => {
                 </button>
 
                 <div className="space-x-1">
-                   <span>
-            Page {currentPage} of {totalPages}
-            </span>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                        key={page}
+                        className={`px-3 py-1 rounded-md text-sm font-medium ${
+                        page === currentPage ? 'bg-indigo-600 text-white' : 'text-indigo-600 hover:bg-indigo-100'
+                        }`}
+                        onClick={() => setCurrentPage(page)}
+                    >
+                        {page}
+                    </button>
+                    ))}
                 </div>
 
                 <button
