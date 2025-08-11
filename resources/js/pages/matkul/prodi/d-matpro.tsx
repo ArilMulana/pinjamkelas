@@ -259,69 +259,111 @@ function deleteMatkulProdi(id: number) {
     });
 }
 
+const [currentFakultasPage, setCurrentFakultasPage] = useState(1);
+const fakultasPerPage = 2;
+const totalFakultasPages = Math.ceil(fakultas.length / fakultasPerPage);
+const paginatedFakultas = fakultas.slice(
+  (currentFakultasPage - 1) * fakultasPerPage,
+  currentFakultasPage * fakultasPerPage);
+
   return (
     <>
         <Head title="Akademik" />
       {!toggleOpen ? (
+
         <div className="container mx-auto p-6 text-black bg-white">
-          <h1 className="text-xl font-semibold mb-4">Daftar Fakultas Program Studi</h1>
-          <table className="min-w-full table-auto border border-gray-300 divide-y divide-gray-200 rounded-lg text-sm">
+        <h1 className="text-xl font-semibold mb-4">Daftar Fakultas Program Studi</h1>
+        <table className="min-w-full table-auto border border-gray-300 divide-y divide-gray-200 rounded-lg text-sm">
             <thead className="bg-gray-100">
-              <tr>
+            <tr>
                 <th className="px-4 py-2 text-left">No</th>
                 <th className="px-4 py-2 text-left">Fakultas</th>
                 <th className="px-4 py-2 text-left">Program Studi</th>
                 <th className="px-4 py-2 text-left">Aksi</th>
-              </tr>
+            </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {fakultas.map((fak, index) => {
+            {paginatedFakultas.map((fak, index) => {
                 const daftarProdi = prodi.filter((p) => p.fakultas_id === fak.id);
 
                 if (daftarProdi.length === 0) {
-                  return (
+                return (
                     <tr key={`no-prodi-${fak.id}`}>
-                      <td className="px-4 py-2 align-top">{index + 1}</td>
-                      <td className="px-4 py-2 align-top">{fak.nama_fakultas}</td>
-                      <td colSpan={1} className="px-4 py-2 align-top">
+                    <td className="px-4 py-2 align-top">{(currentFakultasPage - 1) * fakultasPerPage + index + 1}</td>
+                    <td className="px-4 py-2 align-top">{fak.nama_fakultas}</td>
+                    <td colSpan={1} className="px-4 py-2 align-top">
                         <button
-                          onClick={() => modalTambahProdi(fak.id)}
-                          className="bg-blue-600 rounded-sm shadow-xl p-1 text-blue-100 m-2 hover:bg-blue-800 cursor-pointer "
+                        onClick={() => modalTambahProdi(fak.id)}
+                        className="bg-blue-600 rounded-sm shadow-xl p-1 text-blue-100 m-2 hover:bg-blue-800 cursor-pointer "
                         >
-                          Tambah Program Studi
+                        Tambah Program Studi
                         </button>
-                      </td>
+                    </td>
                     </tr>
-                  );
+                );
                 }
 
                 return daftarProdi.map((p, idx) => (
-                  <tr key={`${fak.id}-${p.id}`}>
+                <tr key={`${fak.id}-${p.id}`}>
                     {idx === 0 && (
-                      <>
+                    <>
                         <td rowSpan={daftarProdi.length} className="px-4 py-2 align-top">
-                          {index + 1}
+                        {(currentFakultasPage - 1) * fakultasPerPage + index + 1}
                         </td>
                         <td rowSpan={daftarProdi.length} className="px-4 py-2 align-top">
-                          {fak.nama_fakultas}
+                        {fak.nama_fakultas}
                         </td>
-                      </>
+                    </>
                     )}
                     <td className="px-4 py-2">{p.nama_program_studi}</td>
                     <td className="px-4 py-2">
-                      <button
+                    <button
                         type="button"
                         onClick={() => dataMatkulProdi(p.id)}
                         className="cursor-pointer ease-in-out hover:-translate-y-1 hover:scale-110 inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-sm text-indigo-600 hover:bg-indigo-100 hover:text-indigo-800 transition"
-                      >
+                    >
                         Detail
-                      </button>
+                    </button>
                     </td>
-                  </tr>
+                </tr>
                 ));
-              })}
+            })}
             </tbody>
-          </table>
+        </table>
+
+        {/* Pagination Controls */}
+        <div className="flex justify-end items-center gap-2 mt-4">
+            <button
+            onClick={() => setCurrentFakultasPage((p) => Math.max(1, p - 1))}
+            disabled={currentFakultasPage === 1}
+            className="px-3 py-1 rounded text-indigo-600 hover:bg-gray-300 disabled:opacity-50"
+            >
+            Prev
+            </button>
+            {/* <span>
+            Page {currentFakultasPage} of {totalFakultasPages}
+            </span> */}
+              <div className="space-x-1">
+                    {Array.from({ length: totalFakultasPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                        key={page}
+                        className={`px-3 py-1 rounded-md text-sm font-medium ${
+                        page === currentFakultasPage ? 'bg-indigo-600 text-white' : 'text-indigo-600 hover:bg-indigo-100'
+                        }`}
+                        onClick={() => setCurrentFakultasPage(page)}
+                    >
+                        {page}
+                    </button>
+                    ))}
+                </div>
+            <button
+            onClick={() => setCurrentFakultasPage((p) => Math.min(totalFakultasPages, p + 1))}
+            disabled={currentFakultasPage === totalFakultasPages}
+            className="px-3 py-1 rounded text-indigo-600 hover:bg-gray-300 disabled:opacity-50"
+            >
+            Next
+            </button>
+        </div>
         </div>
       ) : (
         <div className="container mx-auto p-6 text-black bg-white">
