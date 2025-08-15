@@ -25,4 +25,16 @@ class MatakuliahProgramStudi extends Model
     {
         return $this->belongsTo(ProgramStudi::class,'program_studi_id');
     }
+    public function rooms()
+    {
+         return $this->belongsToMany(Room::class, 'jadwal_ruangans', 'matakuliah_id', 'rooms_id')
+            ->withPivot('hari', 'jam_mulai', 'jam_selesai');
+    }
+
+    public function jadwalRuangans()
+    {
+        return $this->hasMany(JadwalRuangan::class, 'matakuliah_id', 'id');
+    }
+
+
 }

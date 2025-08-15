@@ -14,11 +14,15 @@ class JadwalRuanganController extends Controller
     public function index()
     {
         // Logic to retrieve and display the jadwal ruangan
-        $jadwalRuangan = JadwalRuangan::all(); // Example, adjust as needed
-        return Inertia::render('jadwal/index', [
-            'jadwalRuangan' => $jadwalRuangan,
-        ]);
+        $jadwalRuangan = JadwalRuangan::with([
+        'rooms.floor.building', // nested: rooms → floor → building
+        'matakuliah_program_studi.matakuliah', // nested
+        'matakuliah_program_studi.programstudi' // nested
+    ])->get();
 
+    return Inertia::render('jadwal/index', [
+        'jadwalRuangan' => $jadwalRuangan,
+    ]);
     }
 
     /**
