@@ -2,52 +2,37 @@ import { CirclePlus, Trash2 } from "lucide-react";
 import {
   useReactTable,
   getCoreRowModel,
+  getFilteredRowModel,
   flexRender,
   ColumnDef,
+  Column,
+   ColumnFiltersState,
 } from '@tanstack/react-table';
-import { usePage } from "@inertiajs/react";
-import { useMemo } from "react";
-type Jadwal = {
-  gedung: string;
-  lantai: number;
-  ruangan: string;
-  hari: string;
-  jam_mulai: string;
-  jam_selesai: string;
-  matkul: string;
-  prodi: string;
-  aksi: React.ReactNode;
+
+import { useMemo, useState } from "react";
+import { Jadwal, JadwalRuangan } from "../../hooks/jadwal/use-jadwalruangan";
+
+type FilterInputProps = {
+  column: Column<Jadwal, unknown>;
 };
 
-type JadwalRuangan = {
-  hari: string;
-  jam_mulai: string;
-  jam_selesai: string;
-  rooms: {
-    name: string;
-    floor: {
-      floor_number: number;
-      building: {
-        name: string;
-      };
-    };
-  };
-  matakuliah_program_studi: {
-    matakuliah: {
-      nama_matakuliah: string;
-    };
-    programstudi: {
-      nama_program_studi: string;
-    };
-  };
-};
+function FilterInput({ column }: FilterInputProps) {
+  const value = column.getFilterValue() ?? "";
 
+  return (
+    <input
+      type="text"
+      value={value as string}
+      onChange={(e) => column.setFilterValue(e.target.value)}
+      placeholder="Filter..."
+      className="mt-1 w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+  );
+}
 
 export function JadwalMatkul() {
-     const {jadwalRuangan} = usePage<{
-            jadwalRuangan: JadwalRuangan[];
-            }>().props;
-    console.log(jadwalRuangan);
+     const {jadwalRuangan} = JadwalRuangan();
+       const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 const data = useMemo(() => {
   return jadwalRuangan.map((item) => ({
     gedung: item.rooms.floor.building.name,
@@ -60,11 +45,11 @@ const data = useMemo(() => {
     prodi: item.matakuliah_program_studi.programstudi.nama_program_studi,
     aksi: (
       <div className="flex items-center gap-2">
-        <button className="flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200">
+        <button className="cursor-pointer flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200">
           <CirclePlus size={14} color="white" />
           <span>Edit</span>
         </button>
-        <button className="flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-200">
+        <button className="cursor-pointer flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-200">
           <Trash2 size={14} color="white" />
           <span>Hapus</span>
         </button>
@@ -90,10 +75,12 @@ const data = useMemo(() => {
     header: "Hari",
     accessorKey: "hari",
   },
-  {
-    header: "Waktu",
-    cell: ({ row }) => `${row.original.jam_mulai} - ${row.original.jam_selesai}`,
-  },
+    {
+      header: "Waktu",
+      accessorFn: (row) => `${row.jam_mulai} - ${row.jam_selesai}`,
+      id: "waktu",
+      cell: (info) => info.getValue(),
+    },
   {
     header: "Matakuliah",
     accessorKey: "matkul",
@@ -102,25 +89,30 @@ const data = useMemo(() => {
     header: "Program Studi",
     accessorKey: "prodi",
   },
-  {
-    header: "Aksi",
-    accessorKey: "aksi",
-    cell: info => info.getValue(),
-  },
+
+ {
+      header: "Aksi",
+      accessorKey: "aksi",
+      cell: (info) => info.getValue(),
+      enableColumnFilter: false,
+    },
 ];
 const table = useReactTable({
-  data,
-  columns,
-  getCoreRowModel: getCoreRowModel(),
-});
+    data,
+    columns,
+    state: {
+      columnFilters,
+    },
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+  });
+
   return (
 
       <div className="overflow-x-auto text-black bg-white p-6 rounded-lg shadow-md">
     <div className="mb-4">
-        {/* Judul di tengah */}
         <h1 className="text-2xl font-bold text-center mb-3">Jadwal Matakuliah</h1>
-
-        {/* Tombol di baris terpisah, rata kanan */}
         <div className="flex justify-end">
             <button className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors duration-200">
             <CirclePlus size={16} color="white" />
@@ -130,14 +122,18 @@ const table = useReactTable({
         </div>
 
       <table className="min-w-full divide-y divide-gray-200 border border-gray-300 rounded-lg">
-  <thead className="bg-gray-100">
-    {table.getHeaderGroups().map(headerGroup => (
-      <tr key={headerGroup.id}>
-        {headerGroup.headers.map(header => (
-          <th key={header.id} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-            {flexRender(header.column.columnDef.header, header.getContext())}
-          </th>
-        ))}
+        <thead className="bg-gray-100">
+            {table.getHeaderGroups().map(headerGroup => (
+            <tr key={headerGroup.id}>
+                {headerGroup.headers.map(header => (
+                <th key={header.id} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                    {header.column.getCanFilter() && (
+                            <FilterInput column={header.column} />
+                        )}
+                </th>
+
+                ))}
       </tr>
     ))}
   </thead>

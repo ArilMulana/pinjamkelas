@@ -1,5 +1,4 @@
 import { usePage } from "@inertiajs/react";
-import { Prodi } from "../fakultas/use-fakultas";
 
 export enum tipeMatkul{
     Wajib = "wajib",
@@ -68,22 +67,6 @@ export function useMatkul(){
         return {matkul,matprodi,matkulData};
 }
 
-// export function useMatProdi(){
-//     const {matprodi} = usePage<{
-//             matprodi: MatProdi;
-
-//         }>().props;
-
-//         return {matprodi};
-// }
-// export function useFormMatkul(){
-//     const {matkulData} = usePage<{
-//         matkulData:dataMatkul;
-//     }>().props;
-
-//     // const{formMatkul,setFormatkul} = useState()
-//     return {matkulData};
-// }
 
 
 
