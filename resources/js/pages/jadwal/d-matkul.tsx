@@ -1,39 +1,12 @@
 import { CirclePlus, Trash2 } from "lucide-react";
-import {
-  useReactTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  flexRender,
-  ColumnDef,
-  Column,
-   ColumnFiltersState,
-} from '@tanstack/react-table';
-
-import { useMemo, useState } from "react";
+import { ColumnDef } from "@tanstack/react-table";
+import { useMemo} from "react";
 import { Jadwal, JadwalRuangan } from "../../hooks/jadwal/use-jadwalruangan";
-
-type FilterInputProps = {
-  column: Column<Jadwal, unknown>;
-};
-
-function FilterInput({ column }: FilterInputProps) {
-  const value = column.getFilterValue() ?? "";
-
-  return (
-    <input
-      type="text"
-      value={value as string}
-      onChange={(e) => column.setFilterValue(e.target.value)}
-      placeholder="Filter..."
-      className="mt-1 w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-    />
-  );
-}
+import DataTable from "@/hooks/datatables/use-datatables";
 
 export function JadwalMatkul() {
      const {jadwalRuangan} = JadwalRuangan();
-       const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-const data = useMemo(() => {
+const data = useMemo<Jadwal[]>(() => {
   return jadwalRuangan.map((item) => ({
     gedung: item.rooms.floor.building.name,
     lantai: item.rooms.floor.floor_number,
@@ -57,7 +30,9 @@ const data = useMemo(() => {
     ),
   }));
 }, [jadwalRuangan]);
-    const columns:ColumnDef<Jadwal>[] = [
+
+const columns:ColumnDef<Jadwal>[] = [
+
   {
     header: "Gedung",
     accessorKey: "gedung",
@@ -97,17 +72,6 @@ const data = useMemo(() => {
       enableColumnFilter: false,
     },
 ];
-const table = useReactTable({
-    data,
-    columns,
-    state: {
-      columnFilters,
-    },
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-  });
-
   return (
 
       <div className="overflow-x-auto text-black bg-white p-6 rounded-lg shadow-md">
@@ -120,35 +84,7 @@ const table = useReactTable({
             </button>
         </div>
         </div>
-
-      <table className="min-w-full divide-y divide-gray-200 border border-gray-300 rounded-lg">
-        <thead className="bg-gray-100">
-            {table.getHeaderGroups().map(headerGroup => (
-            <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                <th key={header.id} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                    {header.column.getCanFilter() && (
-                            <FilterInput column={header.column} />
-                        )}
-                </th>
-
-                ))}
-      </tr>
-    ))}
-  </thead>
-  <tbody className="bg-white divide-y divide-gray-200">
-    {table.getRowModel().rows.map(row => (
-      <tr key={row.id}>
-        {row.getVisibleCells().map(cell => (
-          <td key={cell.id} className="px-4 py-3 text-sm">
-            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-          </td>
-        ))}
-      </tr>
-    ))}
-  </tbody>
-</table>
+     <DataTable data={data} columns={columns} />
     </div>
   );
 }

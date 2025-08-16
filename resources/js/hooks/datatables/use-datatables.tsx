@@ -68,7 +68,7 @@ export default function DataTable<T extends Record<string, unknown>>({
   }, [search, pageSize]);
 
   return (
-    <div className="w-full p-4 bg-white rounded-md shadow-md text-black">
+    <div className="w-full p-4 bg-white text-black">
       {/* Search dan page size selector */}
       <div className="flex justify-between mb-4 items-center">
         <input
