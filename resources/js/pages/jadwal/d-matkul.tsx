@@ -83,8 +83,8 @@ const columns:ColumnDef<Jadwal>[] = [
             Tambah Jadwal
             </button>
         </div>
-        </div>
-     <DataTable data={data} columns={columns} />
+          <DataTable data={data} columns={columns} />
+    </div>
     </div>
   );
 }
