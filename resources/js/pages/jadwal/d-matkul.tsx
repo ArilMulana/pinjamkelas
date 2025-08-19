@@ -3,33 +3,36 @@ import { ColumnDef } from "@tanstack/react-table";
 import { useMemo, useState} from "react";
 import { Jadwal, JadwalRuangan } from "../../hooks/jadwal/use-jadwalruangan";
 import DataTable from "@/hooks/datatables/use-datatables";
+import { useDetailLantai } from "@/hooks/lantai/use-lantai";
 
 export function JadwalMatkul() {
      const {jadwalRuangan} = JadwalRuangan();
-const data = useMemo<Jadwal[]>(() => {
-  return jadwalRuangan.map((item) => ({
-    gedung: item.rooms.floor.building.name,
-    lantai: item.rooms.floor.floor_number,
-    ruangan: item.rooms.name,
-    hari: item.hari,
-    jam_mulai: item.jam_mulai,
-    jam_selesai: item.jam_selesai,
-    matkul: item.matakuliah_program_studi.matakuliah.nama_matakuliah,
-    prodi: item.matakuliah_program_studi.programstudi.nama_program_studi,
-    aksi: (
-      <div className="flex items-center gap-2">
-        <button className="cursor-pointer flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200">
-          <CirclePlus size={14} color="white" />
-          <span>Edit</span>
-        </button>
-        <button className="cursor-pointer flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-200">
-          <Trash2 size={14} color="white" />
-          <span>Hapus</span>
-        </button>
-      </div>
-    ),
-  }));
-}, [jadwalRuangan]);
+     const {rooms,floors,buildings} = useDetailLantai();
+     const [IdFloor,setIdFloor] = useState<number | null>(null);
+    const data = useMemo<Jadwal[]>(() => {
+    return jadwalRuangan.map((item) => ({
+        gedung: item.rooms.floor.building.name,
+        lantai: item.rooms.floor.floor_number,
+        ruangan: item.rooms.name,
+        hari: item.hari,
+        jam_mulai: item.jam_mulai,
+        jam_selesai: item.jam_selesai,
+        matkul: item.matakuliah_program_studi.matakuliah.nama_matakuliah,
+        prodi: item.matakuliah_program_studi.programstudi.nama_program_studi,
+        aksi: (
+        <div className="flex items-center gap-2">
+            <button className="cursor-pointer flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200">
+            <CirclePlus size={14} color="white" />
+            <span>Edit</span>
+            </button>
+            <button className="cursor-pointer flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-200">
+            <Trash2 size={14} color="white" />
+            <span>Hapus</span>
+            </button>
+        </div>
+        ),
+    }));
+    }, [jadwalRuangan]);
 
 const columns:ColumnDef<Jadwal>[] = [
 
@@ -74,7 +77,6 @@ const columns:ColumnDef<Jadwal>[] = [
 ];
 
 const [modalOpen, setModalOpen] = useState(false);
-
 function showModal(){
     // Function to show modal for adding new schedule
     console.log("Show modal for adding new schedule");
@@ -82,6 +84,12 @@ function showModal(){
     // Implement modal logic here
 
 }
+  const filteredRooms = rooms.filter((room) => room.floor_id === IdFloor);
+ const handleFloorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const floorId = parseInt(e.target.value);
+    setIdFloor(isNaN(floorId) ? null : floorId);
+  };
+
   return (
 
     <div className="overflow-x-auto text-black bg-white p-6 rounded-lg shadow-md">
@@ -97,6 +105,7 @@ function showModal(){
         </div>
           <DataTable data={data} columns={columns} />
     </div>
+
     {modalOpen && (
  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
   <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl">
@@ -105,30 +114,40 @@ function showModal(){
       {/* GEDUNG + LANTAI */}
       <div className="md:col-span-2">
         <label className="block text-sm font-medium text-gray-700 mb-1">Lokasi (Gedung & Lantai)</label>
-        <select className="border border-gray-300 rounded-md px-3 py-2 w-full">
-          <optgroup label="Gedung A">
-            <option value="Gedung A - Lantai 1">Lantai 1</option>
-            <option value="Gedung A - Lantai 2">Lantai 2</option>
-          </optgroup>
-          <optgroup label="Gedung B">
-            <option value="Gedung B - Lantai 1">Lantai 1</option>
-            <option value="Gedung B - Lantai 2">Lantai 2</option>
-            <option value="Gedung B - Lantai 3">Lantai 3</option>
-          </optgroup>
+        <select
+         onChange={handleFloorChange}
+        className="border border-gray-300 rounded-md px-3 py-2 w-full">
+              {buildings.map((building) => {
+                const floorsInBuilding = floors.filter(
+                (floor) => floor.building_id === building.id
+                );
+                if (floorsInBuilding.length === 0) return null;
+                return (
+                <optgroup key={building.id} label={building.name}>
+                    {floorsInBuilding.map((floor) => (
+                    <option key={floor.id} value={floor.id}>
+                       {floor.building.name} - Lantai {floor.floor_number}
+                    </option>
+                    ))}
+                </optgroup>
+                );
+            })}
         </select>
       </div>
 
       {/* RUANGAN */}
       <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Ruangan</label>
-        <select className="border border-gray-300 rounded-md px-3 py-2 w-full" id="">
-            <option value="">Pilih Ruangan</option>
-            <option value="Ruang A101">Ruang A101</option>
-            <option value="Ruang A102">Ruang A102</option>
-            <option value="Ruang B201">Ruang B201</option>
-            <option value="Ruang B202">Ruang B202</option>
-            <option value="Ruang C301">Ruang C301</option>
-            <option value="Ruang C302">Ruang C302</option>
+     <select className="border border-gray-300 rounded-md px-3 py-2 w-full" id="">
+        {(!filteredRooms || filteredRooms.length === 0) ? (
+            <option value="">Tidak ada ruangan tersedia</option>
+        ) : (
+            filteredRooms.map((room) => (
+            <option key={room.id} value={room.id}>
+                {room.name}
+            </option>
+            ))
+        )}
         </select>
       </div>
 

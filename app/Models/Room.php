@@ -22,6 +22,6 @@ class Room extends Model
     }
     public function floor()
     {
-        return $this->belongsTo(floor::class);
+        return $this->belongsTo(Floor::class);
     }
 }

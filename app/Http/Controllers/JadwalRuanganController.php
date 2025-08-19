@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Building;
+use App\Models\Floor;
 use App\Models\JadwalRuangan;
+use App\Models\MatakuliahProgramStudi;
+use App\Models\Room;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -19,9 +23,23 @@ class JadwalRuanganController extends Controller
         'matakuliah_program_studi.matakuliah', // nested
         'matakuliah_program_studi.programstudi' // nested
     ])->get();
-
+        $rooms = Room::with([
+        'floor.building', // nested: floor → building
+    ])->get();
+        $floors = Floor::with([
+        'building', // nested: floor → building
+    ])->get();
+        $matakuliahProgramStudi = MatakuliahProgramStudi::with([
+        'matakuliah', // nested
+        'programstudi' // nested
+    ])->get();
+    $buildings = Building::all();
     return Inertia::render('jadwal/index', [
         'jadwalRuangan' => $jadwalRuangan,
+        'rooms' => $rooms,
+        'floors' => $floors,
+        'matakuliahProgramStudi' => $matakuliahProgramStudi,
+        'buildings' => $buildings,
     ]);
     }
 
