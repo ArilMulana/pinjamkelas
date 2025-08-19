@@ -1,13 +1,30 @@
 import { CirclePlus, Trash2 } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
-import { useMemo, useState} from "react";
+import React, { useMemo, useState} from "react";
 import { Jadwal, JadwalRuangan } from "../../hooks/jadwal/use-jadwalruangan";
 import DataTable from "@/hooks/datatables/use-datatables";
 import { useDetailLantai } from "@/hooks/lantai/use-lantai";
+import { useMatkul } from "@/hooks/matakuliah/use-matakuliah";
+import { useFakultas } from "@/hooks/fakultas/use-fakultas";
+import { router } from "@inertiajs/react";
+import Swal from "sweetalert2";
 
 export function JadwalMatkul() {
      const {jadwalRuangan} = JadwalRuangan();
      const {rooms,floors,buildings} = useDetailLantai();
+     const {matprodi} =useMatkul();
+     const {prodi}= useFakultas();
+    //  console.log("prodi", prodi);
+    //console.log("matakuliah prodi",matprodi);
+    const [formDataJadwal, setFormDataJadwal] = useState({
+       rooms_id: 0,
+        matakuliah_id: 0,
+        hari: "",
+        jam_mulai: "",
+        jam_selesai: "",
+    });
+
+     //console.log("matprodi", matprodi);
      const [IdFloor,setIdFloor] = useState<number | null>(null);
     const data = useMemo<Jadwal[]>(() => {
     return jadwalRuangan.map((item) => ({
@@ -90,6 +107,36 @@ function showModal(){
     setIdFloor(isNaN(floorId) ? null : floorId);
   };
 
+function tambahJadwal(e:React.FormEvent) {
+    // Function to handle adding new schedule
+    e.preventDefault();
+    router.post(route('jadwal-matkul.store'), formDataJadwal, {
+        onSuccess: () => {
+            console.log("Jadwal berhasil ditambahkan");
+            setModalOpen(false);
+            setFormDataJadwal({
+                rooms_id: 0,
+                matakuliah_id: 0,
+                hari: "",
+                jam_mulai: "",
+                jam_selesai: "",
+            });
+             Swal.fire('Sukses', 'Jadwal berhasil ditambahkan', 'success');
+            // Optionally, refresh the data or show a success message
+        },
+        onError: (error) => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: 'Terjadi kesalahan saat menambahkan jadwal',
+            });
+            console.error("Error adding schedule:", error);
+            // Handle error, e.g., show an error message
+        },
+    });
+
+}
+
   return (
 
     <div className="overflow-x-auto text-black bg-white p-6 rounded-lg shadow-md">
@@ -117,6 +164,9 @@ function showModal(){
         <select
          onChange={handleFloorChange}
         className="border border-gray-300 rounded-md px-3 py-2 w-full">
+              <option value="" disabled selected>
+                Pilih Gedung dan Lantai
+            </option>
               {buildings.map((building) => {
                 const floorsInBuilding = floors.filter(
                 (floor) => floor.building_id === building.id
@@ -126,7 +176,8 @@ function showModal(){
                 <optgroup key={building.id} label={building.name}>
                     {floorsInBuilding.map((floor) => (
                     <option key={floor.id} value={floor.id}>
-                       {floor.building.name} - Lantai {floor.floor_number}
+                       {floor.building.name} -
+                       Lantai {floor.floor_number}
                     </option>
                     ))}
                 </optgroup>
@@ -138,7 +189,13 @@ function showModal(){
       {/* RUANGAN */}
       <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Ruangan</label>
-     <select className="border border-gray-300 rounded-md px-3 py-2 w-full" id="">
+     <select
+     value={formDataJadwal.rooms_id ||''}
+        onChange={(e)=>setFormDataJadwal({...formDataJadwal,rooms_id:Number(e.target.value)})}
+     className="border border-gray-300 rounded-md px-3 py-2 w-full" id="">
+        <option value="" disabled>
+            Pilih Ruangan
+        </option>
         {(!filteredRooms || filteredRooms.length === 0) ? (
             <option value="">Tidak ada ruangan tersedia</option>
         ) : (
@@ -156,7 +213,10 @@ function showModal(){
   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
     {/* HARI */}
             <div>
-            <select className="border border-gray-300 rounded-md px-3 py-2 w-full">
+            <select
+            value={formDataJadwal.hari || ''}
+            onChange={(e) => setFormDataJadwal({...formDataJadwal, hari: e.target.value})}
+            className="border border-gray-300 rounded-md px-3 py-2 w-full">
                 <option value="">Pilih Hari</option>
                 <option value="Senin">Senin</option>
                 <option value="Selasa">Selasa</option>
@@ -170,6 +230,8 @@ function showModal(){
             {/* JAM MULAI */}
             <div>
             <input
+                value={formDataJadwal.jam_mulai || ''}
+                onChange={(e) => setFormDataJadwal({...formDataJadwal, jam_mulai: e.target.value})}
                 type="time"
                 step="60"
                 className="border border-gray-300 rounded-md px-3 py-2 w-full"
@@ -181,6 +243,8 @@ function showModal(){
             <div>
             <input
                 type="time"
+                value={formDataJadwal.jam_selesai || ''}
+                onChange={(e) => setFormDataJadwal({...formDataJadwal, jam_selesai: e.target.value})}
                 step="60"
                 className="border border-gray-300 rounded-md px-3 py-2 w-full"
                 placeholder="Jam Selesai"
@@ -192,20 +256,33 @@ function showModal(){
       {/* PROGRAM STUDI + MATAKULIAH */}
       <div className="md:col-span-2">
         <label className="block text-sm font-medium text-gray-700 mb-1">Matakuliah (berdasarkan Program Studi)</label>
-        <select className="border border-gray-300 rounded-md px-3 py-2 w-full">
-          <optgroup label="Teknik Informatika">
-            <option value="Pemrograman Dasar">Pemrograman Dasar</option>
-            <option value="Struktur Data">Struktur Data</option>
-            <option value="Basis Data">Basis Data</option>
-          </optgroup>
-          <optgroup label="Sistem Informasi">
-            <option value="Manajemen Proyek TI">Manajemen Proyek TI</option>
-            <option value="Analisis Sistem">Analisis Sistem</option>
-          </optgroup>
-          <optgroup label="Teknik Elektro">
-            <option value="Rangkaian Listrik">Rangkaian Listrik</option>
-            <option value="Elektronika Dasar">Elektronika Dasar</option>
-          </optgroup>
+        <select
+        value={formDataJadwal.matakuliah_id || ''}
+        onChange={(e) => {
+             const newValue = Number(e.target.value);
+             console.log("Selected matakuliah_id:", newValue);
+
+            setFormDataJadwal({...formDataJadwal, matakuliah_id: newValue})
+        }}
+        className="border border-gray-300 rounded-md px-3 py-2 w-full">
+               <option value="" disabled>
+                Pilih Matakuliah
+            </option>
+        {prodi.map((prodi) => {
+                const matkulInprodi = matprodi.filter(
+                (item) => item.programstudi.id === prodi.id
+                );
+                if (matkulInprodi.length === 0) return null;
+                return (
+                <optgroup key={prodi.id} label={prodi.nama_program_studi}>
+                    {matkulInprodi.map((matkul) => (
+                    <option key={matkul.id} value={matkul.id}>
+                     {matkul.matakuliah.nama_matakuliah} - {matkul.matakuliah.sks} SKS
+                    </option>
+                    ))}
+                </optgroup>
+                );
+            })}
         </select>
       </div>
     </form>
@@ -222,10 +299,7 @@ function showModal(){
         Batal
       </button>
       <button
-        onClick={() => {
-          console.log("Save new schedule");
-          setModalOpen(false);
-        }}
+      onClick={tambahJadwal}
         className="cursor-pointer px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200"
       >
         Simpan

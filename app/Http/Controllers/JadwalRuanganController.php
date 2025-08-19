@@ -6,6 +6,7 @@ use App\Models\Building;
 use App\Models\Floor;
 use App\Models\JadwalRuangan;
 use App\Models\MatakuliahProgramStudi;
+use App\Models\ProgramStudi;
 use App\Models\Room;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -33,13 +34,18 @@ class JadwalRuanganController extends Controller
         'matakuliah', // nested
         'programstudi' // nested
     ])->get();
+    $prodi = ProgramStudi::with([
+        // 'matakuliahProgramStudi', // nested
+        'fakultas'
+    ])->get();
     $buildings = Building::all();
     return Inertia::render('jadwal/index', [
         'jadwalRuangan' => $jadwalRuangan,
         'rooms' => $rooms,
         'floors' => $floors,
-        'matakuliahProgramStudi' => $matakuliahProgramStudi,
+        'matprodi' => $matakuliahProgramStudi,
         'buildings' => $buildings,
+        'prodi' => $prodi,
     ]);
     }
 
@@ -56,7 +62,24 @@ class JadwalRuanganController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // Validate the request data
+        $request->validate([
+            'rooms_id' => 'required|exists:rooms,id',
+            'matakuliah_id' => 'required|exists:matakuliah_program_studi,id',
+            'hari' => 'required|string|max:10',
+            'jam_mulai' => 'required|date_format:H:i',
+            'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
+        ]);
+        // Create the jadwal ruangan
+        JadwalRuangan::create([
+            'rooms_id' => $request->rooms_id,
+            'matakuliah_id' => $request->matakuliah_id,
+            'hari' => $request->hari,
+            'jam_mulai' => $request->jam_mulai,
+            'jam_selesai' => $request->jam_selesai,
+        ]);
+
+        return redirect()->route('jadwal-matkul')->with('success', 'Jadwal Matakuliah berhasil ditambahkan');
     }
 
     /**

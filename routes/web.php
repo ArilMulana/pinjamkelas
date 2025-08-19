@@ -76,6 +76,7 @@ Route::middleware(['auth', 'verified','role:1'])->group(function () {
 
     //Jadwal Matakuliah
     Route::get('/dashboard/matkul/jadwal',[JadwalRuanganController::class,'index'])->name('jadwal-matkul');
+    Route::post('/dashboard/matkul/jadwal/create/process',[JadwalRuanganController::class,'store'])->name('jadwal-matkul.store');
 });
 
 

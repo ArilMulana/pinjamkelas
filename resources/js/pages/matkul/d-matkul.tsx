@@ -100,7 +100,7 @@ useEffect(() => {
             return;
             }
         if (isEditMode && isEditId !== null) {
-            console.log(formDataMatkul);
+            //console.log(formDataMatkul);
             router.put(route('matkul.update', isEditId), formDataMatkul, {
             onSuccess: (page) => {
                 const updatedMatkul = (page.props as unknown as { matkul: dataMatkul[] }).matkul;
