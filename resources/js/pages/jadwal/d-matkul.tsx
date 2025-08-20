@@ -194,6 +194,20 @@ useEffect(() => {
         console.error(err);
       });
   }, [formDataJadwal]);
+
+  function cancelModal(){
+    setModalOpen(false);
+    setFormDataJadwal({
+      rooms_id: 0,
+      matakuliah_id: 0,
+      hari: "",
+      jam_mulai: "",
+      jam_selesai: "",
+    });
+    setErrorBentrok("");
+    setJadwalTersedia("");
+    //setIdFloor(null); // Reset IdFloor when modal is closed
+  }
   return (
 
     <div className="overflow-x-auto text-black bg-white p-6 rounded-lg shadow-md">
@@ -369,20 +383,22 @@ useEffect(() => {
     {/* BUTTONS */}
     <div className="mt-6 flex justify-end gap-3">
       <button
-        onClick={() => {
-          console.log("Cancel adding new schedule");
-          setModalOpen(false);
-        }}
+        onClick ={cancelModal}
         className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400 transition-colors duration-200"
       >
         Batal
       </button>
-      <button
-      onClick={tambahJadwal}
-        className="cursor-pointer px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200"
-      >
+     <button
+        onClick={tambahJadwal}
+        disabled={!jadwalTersedia}
+        className={`px-4 py-2 rounded text-white transition-colors duration-200
+            ${!jadwalTersedia
+            ? 'bg-gray-400 cursor-not-allowed'
+            : 'bg-blue-500 hover:bg-blue-600 cursor-pointer'
+            }`}
+        >
         Simpan
-      </button>
+        </button>
     </div>
   </div>
 </div>
