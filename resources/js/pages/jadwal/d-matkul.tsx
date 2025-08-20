@@ -1,6 +1,6 @@
 import { CirclePlus, Trash2 } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
-import React, { useMemo, useState} from "react";
+import React, { useEffect, useMemo, useState} from "react";
 import { Jadwal, JadwalRuangan } from "../../hooks/jadwal/use-jadwalruangan";
 import DataTable from "@/hooks/datatables/use-datatables";
 import { useDetailLantai } from "@/hooks/lantai/use-lantai";
@@ -8,6 +8,9 @@ import { useMatkul } from "@/hooks/matakuliah/use-matakuliah";
 import { useFakultas } from "@/hooks/fakultas/use-fakultas";
 import { router } from "@inertiajs/react";
 import Swal from "sweetalert2";
+import Flatpickr from "react-flatpickr";
+import "flatpickr/dist/themes/material_blue.css";
+import axios from "axios";
 
 export function JadwalMatkul() {
      const {jadwalRuangan} = JadwalRuangan();
@@ -128,15 +131,69 @@ function tambahJadwal(e:React.FormEvent) {
             Swal.fire({
                 icon: 'error',
                 title: 'Gagal',
-                text: 'Terjadi kesalahan saat menambahkan jadwal',
+                text: 'Jadwal gagal ditambahkan. Silakan coba lagi.',
             });
             console.error("Error adding schedule:", error);
             // Handle error, e.g., show an error message
         },
     });
-
 }
+useEffect(() => {
+  const selectedMataKuliah = matprodi.find(
+    (mk) => mk.id === formDataJadwal.matakuliah_id
+  );
 
+  if (selectedMataKuliah && formDataJadwal.jam_mulai) {
+    const sks = selectedMataKuliah.matakuliah.sks;
+    const tambahanMenit = sks * 45;
+
+    const [jam, menit] = formDataJadwal.jam_mulai.split(':').map(Number);
+    const mulaiDate = new Date();
+    mulaiDate.setHours(jam);
+    mulaiDate.setMinutes(menit);
+
+    mulaiDate.setMinutes(mulaiDate.getMinutes() + tambahanMenit);
+
+    const jamSelesaiFormatted = mulaiDate.toTimeString().slice(0, 5);
+
+    setFormDataJadwal((prev) => ({
+      ...prev,
+      jam_selesai: jamSelesaiFormatted,
+    }));
+  }
+}, [formDataJadwal.matakuliah_id, formDataJadwal.jam_mulai, matprodi]);
+
+  const [errorBentrok, setErrorBentrok] = useState("");
+  const [jadwalTersedia, setJadwalTersedia] = useState("");
+  useEffect(() => {
+    const { rooms_id, hari, jam_mulai, jam_selesai } = formDataJadwal;
+
+    if (!rooms_id || !hari || !jam_mulai || !jam_selesai) {
+      setErrorBentrok("");
+      setJadwalTersedia("");
+      return;
+    }
+    axios.post("/cek-jadwal-bentrok", {
+        rooms_id,
+        hari,
+        jam_mulai,
+        jam_selesai,
+      })
+      .then((res) => {
+        if (res.data.bentrok) {
+          setErrorBentrok(res.data.message || "Jadwal bentrok dengan jadwal lain.");
+           setJadwalTersedia(""); // Kosongkan pesan tersedia
+        } else {
+          setErrorBentrok("");
+           setJadwalTersedia("Jadwal tersedia dan tidak bentrok.");
+        }
+      })
+      .catch((err) => {
+        setErrorBentrok("Gagal memeriksa jadwal.");
+        setJadwalTersedia("");
+        console.error(err);
+      });
+  }, [formDataJadwal]);
   return (
 
     <div className="overflow-x-auto text-black bg-white p-6 rounded-lg shadow-md">
@@ -228,28 +285,50 @@ function tambahJadwal(e:React.FormEvent) {
             </div>
 
             {/* JAM MULAI */}
-            <div>
-            <input
-                value={formDataJadwal.jam_mulai || ''}
-                onChange={(e) => setFormDataJadwal({...formDataJadwal, jam_mulai: e.target.value})}
-                type="time"
-                step="60"
-                className="border border-gray-300 rounded-md px-3 py-2 w-full"
-                placeholder="Jam Mulai"
+          <Flatpickr
+            options={{
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: "H:i",
+                time_24hr: true,
+                minuteIncrement: 1,
+            }}
+            value={formDataJadwal.jam_mulai || ''}
+            onChange={([time]) => {
+                const formattedTime = time.toTimeString().slice(0, 5);
+                setFormDataJadwal({ ...formDataJadwal, jam_mulai: formattedTime });
+            }}
+            className="border border-gray-300 rounded-md px-3 py-2 w-full"
             />
-            </div>
 
             {/* JAM SELESAI */}
-            <div>
-            <input
-                type="time"
-                value={formDataJadwal.jam_selesai || ''}
-                onChange={(e) => setFormDataJadwal({...formDataJadwal, jam_selesai: e.target.value})}
-                step="60"
-                className="border border-gray-300 rounded-md px-3 py-2 w-full"
-                placeholder="Jam Selesai"
+              <Flatpickr
+              disabled
+            options={{
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: "H:i",
+                time_24hr: true,
+                minuteIncrement: 1,
+            }}
+            value={formDataJadwal.jam_selesai || ''}
+            onChange={([time]) => {
+                const formattedTime = time.toTimeString().slice(0, 5);
+                setFormDataJadwal({ ...formDataJadwal, jam_selesai: formattedTime });
+            }}
+            className="border border-gray-300 rounded-md px-3 py-2 w-full"
             />
+
+           {errorBentrok && (
+            <div className="mt-2 px-4 py-2 rounded-md bg-red-100 text-red-700 border border-red-300 text-sm">
+                {errorBentrok}
             </div>
+            )}
+            {jadwalTersedia && !errorBentrok && (
+            <div className="mt-2 px-4 py-2 rounded-md bg-green-100 text-green-700 border border-green-300 text-sm">
+                {jadwalTersedia}
+            </div>
+            )}
         </div>
         </div>
 

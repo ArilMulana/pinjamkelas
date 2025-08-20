@@ -70,6 +70,23 @@ class JadwalRuanganController extends Controller
             'jam_mulai' => 'required|date_format:H:i',
             'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
         ]);
+
+         // Cek bentrok jadwal
+    $exists = JadwalRuangan::where('rooms_id', $request->rooms_id)
+        ->where('hari', $request->hari)
+        ->where(function ($query) use ($request) {
+            $query->whereBetween('jam_mulai', [$request->jam_mulai, $request->jam_selesai])
+                  ->orWhereBetween('jam_selesai', [$request->jam_mulai, $request->jam_selesai])
+                  ->orWhere(function ($query) use ($request) {
+                      $query->where('jam_mulai', '<', $request->jam_mulai)
+                            ->where('jam_selesai', '>', $request->jam_selesai);
+                  });
+        })
+        ->exists();
+
+    if ($exists) {
+       return redirect()->back()->with('swal_error', 'Jadwal bentrok dengan jadwal lain di ruangan tersebut')->withInput();
+    }
         // Create the jadwal ruangan
         JadwalRuangan::create([
             'rooms_id' => $request->rooms_id,
@@ -112,5 +129,33 @@ class JadwalRuanganController extends Controller
     public function destroy(JadwalRuangan $jadwalRuangan)
     {
         //
+    }
+
+
+     public function cek(Request $request)
+    {
+        $request->validate([
+            'rooms_id' => 'required|exists:rooms,id',
+            'hari' => 'required|string|max:10',
+            'jam_mulai' => 'required|date_format:H:i',
+            'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
+        ]);
+
+        $exists = JadwalRuangan::where('rooms_id', $request->rooms_id)
+            ->where('hari', $request->hari)
+            ->where(function ($query) use ($request) {
+                $query->whereBetween('jam_mulai', [$request->jam_mulai, $request->jam_selesai])
+                    ->orWhereBetween('jam_selesai', [$request->jam_mulai, $request->jam_selesai])
+                    ->orWhere(function ($query) use ($request) {
+                        $query->where('jam_mulai', '<', $request->jam_mulai)
+                            ->where('jam_selesai', '>', $request->jam_selesai);
+                    });
+            })
+            ->exists();
+
+        return response()->json([
+            'bentrok' => $exists,
+            'message' => $exists ? 'Jadwal bentrok dengan jadwal lain di ruangan tersebut.' : '',
+        ]);
     }
 }
