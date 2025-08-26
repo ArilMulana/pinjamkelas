@@ -45,10 +45,10 @@ export function JadwalMatkul() {
     });
     //console.log(jadwal);
 
-      setSelectedFloorId(jadwal.rooms.floor.id);
+    setSelectedFloorId(jadwal.rooms.floor.id);
 
   // Set filteredRooms sesuai floor yang dipilih agar dropdown Ruangan sesuai
-  setFilteredRooms(rooms.filter(room => room.floor_id === jadwal.rooms.floor.id));
+    setFilteredRooms(rooms.filter(room => room.floor_id === jadwal.rooms.floor.id));
 
     setModalOpen(true);
     setSelectedIdJadwal(id);
@@ -72,7 +72,9 @@ export function JadwalMatkul() {
             <CirclePlus size={14} color="white" />
             <span>Edit</span>
             </button>
-            <button className="cursor-pointer flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-200">
+            <button
+            onClick={()=>deleteJadwal(item.id)}
+            className="cursor-pointer flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-200">
             <Trash2 size={14} color="white" />
             <span>Hapus</span>
             </button>
@@ -122,9 +124,8 @@ const columns:ColumnDef<Jadwal>[] = [
       enableColumnFilter: false,
     },
 ];
-
 const [modalOpen, setModalOpen] = useState(false);
-function showModal(){
+function tambahModal(){
    setFormDataJadwal({
     rooms_id: 0,
     matakuliah_id: 0,
@@ -140,8 +141,8 @@ function showModal(){
 
 }
    const [selectedFloorId, setSelectedFloorId] = useState<number | "">("");
-const [filteredRooms, setFilteredRooms] = useState<Ruangan[]>([]);
- const handleFloorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+   const [filteredRooms, setFilteredRooms] = useState<Ruangan[]>([]);
+   const handleFloorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const floorId = Number(e.target.value);
   setSelectedFloorId(floorId);
   // Filter ruangan sesuai lantai yang dipilih
@@ -153,36 +154,63 @@ const [filteredRooms, setFilteredRooms] = useState<Ruangan[]>([]);
 function tambahJadwal(e:React.FormEvent) {
     // Function to handle adding new schedule
     e.preventDefault();
+    if(!selectedIdJadwal){
     router.post(route('jadwal-matkul.store'), formDataJadwal, {
-        onSuccess: () => {
-            console.log("Jadwal berhasil ditambahkan");
-            setModalOpen(false);
-            setFormDataJadwal({
-                rooms_id: 0,
-                matakuliah_id: 0,
-                hari: "",
-                jam_mulai: "",
-                jam_selesai: "",
-            });
-             Swal.fire('Sukses', 'Jadwal berhasil ditambahkan', 'success');
-            // Optionally, refresh the data or show a success message
-        },
-        onError: (error) => {
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal',
-                text: 'Jadwal gagal ditambahkan. Silakan coba lagi.',
-            });
-            console.error("Error adding schedule:", error);
-            // Handle error, e.g., show an error message
-        },
-    });
+            onSuccess: () => {
+                console.log("Jadwal berhasil ditambahkan");
+                setModalOpen(false);
+                setFormDataJadwal({
+                    rooms_id: 0,
+                    matakuliah_id: 0,
+                    hari: "",
+                    jam_mulai: "",
+                    jam_selesai: "",
+                });
+                Swal.fire('Sukses', 'Jadwal berhasil ditambahkan', 'success');
+                // Optionally, refresh the data or show a success message
+            },
+            onError: (error) => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    text: 'Jadwal gagal ditambahkan. Silakan coba lagi.',
+                });
+                console.error("Error adding schedule:", error);
+                // Handle error, e.g., show an error message
+            },
+        });
+    }else{
+          router.put(route('jadwal.update',selectedIdJadwal), formDataJadwal, {
+            onSuccess: () => {
+                setModalOpen(false);
+                setFormDataJadwal({
+                    rooms_id: 0,
+                    matakuliah_id: 0,
+                    hari: "",
+                    jam_mulai: "",
+                    jam_selesai: "",
+                });
+                Swal.fire('Sukses', 'Jadwal berhasil di update', 'success');
+            },
+            onError: (error) => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    text: 'Jadwal gagal diupdate. Silakan coba lagi.',
+                });
+                console.error("Error adding schedule:", error);
+                // Handle error, e.g., show an error message
+            },
+        });
+    }
+
 }
+
+
 useEffect(() => {
   const selectedMataKuliah = matprodi.find(
     (mk) => mk.id === formDataJadwal.matakuliah_id
   );
-
   if (selectedMataKuliah && formDataJadwal.jam_mulai) {
     const sks = selectedMataKuliah.matakuliah.sks;
     const tambahanMenit = sks * 45;
@@ -205,6 +233,7 @@ useEffect(() => {
 
   const [errorBentrok, setErrorBentrok] = useState("");
   const [jadwalTersedia, setJadwalTersedia] = useState("");
+
   useEffect(() => {
     const { rooms_id, hari, jam_mulai, jam_selesai } = formDataJadwal;
 
@@ -228,10 +257,12 @@ useEffect(() => {
            setJadwalTersedia("Jadwal tersedia dan tidak bentrok.");
         }
       })
-      .catch((err) => {
+      .catch((
+        //err
+        ) => {
         setErrorBentrok("Gagal memeriksa jadwal.");
         setJadwalTersedia("");
-        console.error(err);
+        //console.error(err);
       });
   }, [formDataJadwal]);
 
@@ -248,6 +279,29 @@ useEffect(() => {
     setJadwalTersedia("");
     setSelectedIdJadwal(null); // Reset selected ID when modal is closed
   }
+
+function deleteJadwal(id: number) {
+    Swal.fire({
+        title: 'Konfirmasi Hapus',
+        text: 'Apakah Anda yakin ingin menghapus Jadwal ini?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Hapus',
+        cancelButtonText: 'Batal',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            router.delete(route('jadwal.destroy', id), {
+                onSuccess: () => {
+                    Swal.fire('Sukses', 'Jadwal berhasil dihapus', 'success');
+                },
+                onError: () => {
+                    Swal.fire('Gagal', 'Terjadi kesalahan saat menghapus Jadwal', 'error');
+
+                }
+            });
+        }
+    });
+}
   return (
 
     <div className="overflow-x-auto text-black bg-white p-6 rounded-lg shadow-md">
@@ -255,7 +309,7 @@ useEffect(() => {
         <h1 className="text-2xl font-bold text-center mb-3">Jadwal Matakuliah</h1>
         <div className="flex justify-end">
             <button
-            onClick={showModal}
+            onClick={tambahModal}
             className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700 transition-colors duration-200">
             <CirclePlus size={16} color="white" />
             Tambah Jadwal

@@ -78,7 +78,8 @@ Route::middleware(['auth', 'verified','role:1'])->group(function () {
     Route::get('/dashboard/matkul/jadwal',[JadwalRuanganController::class,'index'])->name('jadwal-matkul');
     Route::post('/dashboard/matkul/jadwal/create/process',[JadwalRuanganController::class,'store'])->name('jadwal-matkul.store');
     Route::post('/cek-jadwal-bentrok', [JadwalRuanganController::class, 'cek']);
-
+    Route::put('/dashboard/matkul/jadwal/{ruangan}',[JadwalRuanganController::class,'update'])->name('jadwal.update');
+    Route::delete('/dashboard/matkul/jadwal/{id}',[JadwalRuanganController::class,'destroy'])->name('jadwal.destroy');
 });
 
 
