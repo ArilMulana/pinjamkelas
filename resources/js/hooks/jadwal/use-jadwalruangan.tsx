@@ -18,8 +18,10 @@ export type JadwalRuangan = {
   jam_mulai: string;
   jam_selesai: string;
   rooms: {
+    id:number;
     name: string;
     floor: {
+        id:number;
       floor_number: number;
       building: {
         name: string;
@@ -27,6 +29,7 @@ export type JadwalRuangan = {
     };
   };
   matakuliah_program_studi: {
+    id:number;
     matakuliah: {
       nama_matakuliah: string;
     };

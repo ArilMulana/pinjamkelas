@@ -1,7 +1,6 @@
 
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
 import { ReactNode } from 'react';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 

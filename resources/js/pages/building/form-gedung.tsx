@@ -35,6 +35,7 @@ export function FormGedung() {
     }
     };
 
+
 const handleSubmit = (e: React.FormEvent) => {
   e.preventDefault();
   post(route("building.store"), {
@@ -51,11 +52,11 @@ const handleSubmit = (e: React.FormEvent) => {
 
       reset();
     },
-    onError: (errors) => {
+    onError: () => {
       Swal.fire({
         icon: 'error',
         title: 'Terjadi Kesalahan',
-        html: Object.values(errors).map(err => `<p>${err}</p>`).join(''),
+        //html: Object.values(errors).map(err => `<p>${err}</p>`).join(''),
         confirmButtonText: 'OK',
       });
     }
@@ -135,7 +136,7 @@ const handleSubmit = (e: React.FormEvent) => {
           <button type="button"
         //   onClick={() =>reset()}
         onClick={cancelForm}
-          className="text-sm font-semibold text-gray-900">
+          className="cursor-pointer text-sm font-semibold text-gray-900">
             Cancel
           </button>
          <button

@@ -1,9 +1,9 @@
 import { CirclePlus, Trash2 } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
-import React, { useEffect, useMemo, useState} from "react";
+import React, { useCallback, useEffect, useMemo, useState} from "react";
 import { Jadwal, JadwalRuangan } from "../../hooks/jadwal/use-jadwalruangan";
 import DataTable from "@/hooks/datatables/use-datatables";
-import { useDetailLantai } from "@/hooks/lantai/use-lantai";
+import { Ruangan, useDetailLantai } from "@/hooks/lantai/use-lantai";
 import { useMatkul } from "@/hooks/matakuliah/use-matakuliah";
 import { useFakultas } from "@/hooks/fakultas/use-fakultas";
 import { router } from "@inertiajs/react";
@@ -28,7 +28,32 @@ export function JadwalMatkul() {
     });
 
      //console.log("matprodi", matprodi);
-     const [IdFloor,setIdFloor] = useState<number | null>(null);
+     //const [IdFloor,setIdFloor] = useState<number | null>(null);
+     const [selectedIdJadwal,setSelectedIdJadwal] = useState<number | null>(null);
+     //const matchProdi = jadwalRuangan.filter((p)=>p.id===selectedIdJadwal);
+
+    const editJadwal = useCallback((id: number) => {
+    const jadwal = jadwalRuangan.find(j => j.id === id);
+    if (!jadwal) return;
+
+    setFormDataJadwal({
+        rooms_id: jadwal.rooms.id,
+        matakuliah_id: jadwal.matakuliah_program_studi.id,
+        hari: jadwal.hari,
+        jam_mulai: jadwal.jam_mulai,
+        jam_selesai: jadwal.jam_selesai,
+    });
+    //console.log(jadwal);
+
+      setSelectedFloorId(jadwal.rooms.floor.id);
+
+  // Set filteredRooms sesuai floor yang dipilih agar dropdown Ruangan sesuai
+  setFilteredRooms(rooms.filter(room => room.floor_id === jadwal.rooms.floor.id));
+
+    setModalOpen(true);
+    setSelectedIdJadwal(id);
+    }, [jadwalRuangan,rooms]);
+
     const data = useMemo<Jadwal[]>(() => {
     return jadwalRuangan.map((item) => ({
         gedung: item.rooms.floor.building.name,
@@ -41,7 +66,9 @@ export function JadwalMatkul() {
         prodi: item.matakuliah_program_studi.programstudi.nama_program_studi,
         aksi: (
         <div className="flex items-center gap-2">
-            <button className="cursor-pointer flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200">
+            <button
+            onClick={() => editJadwal(item.id)}
+            className="cursor-pointer flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200">
             <CirclePlus size={14} color="white" />
             <span>Edit</span>
             </button>
@@ -52,7 +79,7 @@ export function JadwalMatkul() {
         </div>
         ),
     }));
-    }, [jadwalRuangan]);
+    }, [jadwalRuangan,editJadwal]);
 
 const columns:ColumnDef<Jadwal>[] = [
 
@@ -98,16 +125,29 @@ const columns:ColumnDef<Jadwal>[] = [
 
 const [modalOpen, setModalOpen] = useState(false);
 function showModal(){
-    // Function to show modal for adding new schedule
-    console.log("Show modal for adding new schedule");
-    setModalOpen(true);
-    // Implement modal logic here
+   setFormDataJadwal({
+    rooms_id: 0,
+    matakuliah_id: 0,
+    hari: "",
+    jam_mulai: "",
+    jam_selesai: "",
+  });
+
+  setSelectedIdJadwal(null); // <– Mode tambah
+  setSelectedFloorId("");    // <– Reset dropdown floor
+  setFilteredRooms([]);      // <– Kosongkan ruangan dulu
+  setModalOpen(true);
 
 }
-  const filteredRooms = rooms.filter((room) => room.floor_id === IdFloor);
+   const [selectedFloorId, setSelectedFloorId] = useState<number | "">("");
+const [filteredRooms, setFilteredRooms] = useState<Ruangan[]>([]);
  const handleFloorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const floorId = parseInt(e.target.value);
-    setIdFloor(isNaN(floorId) ? null : floorId);
+    const floorId = Number(e.target.value);
+  setSelectedFloorId(floorId);
+  // Filter ruangan sesuai lantai yang dipilih
+  setFilteredRooms(rooms.filter(room => room.floor_id === floorId));
+  // Reset rooms_id di form agar Ruangan dropdown ikut reset
+  setFormDataJadwal(prev => ({ ...prev, rooms_id: 0 }));
   };
 
 function tambahJadwal(e:React.FormEvent) {
@@ -206,7 +246,7 @@ useEffect(() => {
     });
     setErrorBentrok("");
     setJadwalTersedia("");
-    //setIdFloor(null); // Reset IdFloor when modal is closed
+    setSelectedIdJadwal(null); // Reset selected ID when modal is closed
   }
   return (
 
@@ -227,13 +267,17 @@ useEffect(() => {
     {modalOpen && (
  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
   <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl">
-    <h2 className="text-2xl font-semibold mb-6 text-center">Tambah Jadwal</h2>
+   <h2 className="text-2xl font-semibold mb-6 text-center">
+  {selectedIdJadwal ? 'Edit Jadwal' : 'Tambah Jadwal'}
+</h2>
     <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* GEDUNG + LANTAI */}
       <div className="md:col-span-2">
         <label className="block text-sm font-medium text-gray-700 mb-1">Lokasi (Gedung & Lantai)</label>
         <select
          onChange={handleFloorChange}
+         value={selectedFloorId}
+
         className="border border-gray-300 rounded-md px-3 py-2 w-full">
               <option value="" disabled selected>
                 Pilih Gedung dan Lantai
@@ -245,6 +289,7 @@ useEffect(() => {
                 if (floorsInBuilding.length === 0) return null;
                 return (
                 <optgroup key={building.id} label={building.name}>
+
                     {floorsInBuilding.map((floor) => (
                     <option key={floor.id} value={floor.id}>
                        {floor.building.name} -

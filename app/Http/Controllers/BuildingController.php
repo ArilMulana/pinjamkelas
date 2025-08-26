@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreBuildingRequest;
 use App\Models\Building;
 use App\Services\DataCheckerService;
 use Illuminate\Http\Request;
@@ -41,16 +42,13 @@ class BuildingController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreBuildingRequest $request)
     {
-        $validated = $request->validate([
-            'name'=>'required|string|max:255',
-            'code'=>'required|string|max:100|unique:buildings,code',
-            'lokasi'=>'required|string'
-        ]);
+        $validated = $request->validated();
+
         Building::createBuilding($validated);
 
-     return redirect()->route('building')->with('success', 'Gedung berhasil ditambahkan');
+     return Inertia::location(route('building'));
     }
 
     /**
