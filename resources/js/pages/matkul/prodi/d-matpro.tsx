@@ -1,6 +1,6 @@
 import { Fakultas,  useFakultas } from "@/hooks/fakultas/use-fakultas";
 import {dataMatkul, formMatPro,  useMatkul } from "@/hooks/matakuliah/use-matakuliah";
-import { Head, router } from "@inertiajs/react";
+import { router } from "@inertiajs/react";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { Combobox } from '@headlessui/react'
@@ -268,7 +268,6 @@ const paginatedFakultas = fakultas.slice(
 
   return (
     <>
-        <Head title="Akademik" />
       {!toggleOpen ? (
 
         <div className="container mx-auto p-6 text-black bg-white">

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,8 +17,10 @@ class UserController extends Controller
          $user = User::with('role:id,name')
           ->where('role_id','!=',1)
          ->get();
+         $role = Role::where('id','>',1)->get();
         return Inertia::render('user/index',[
-            'users'=>$user
+            'users'=>$user,
+            'roles'=>$role
         ]);
     }
 
