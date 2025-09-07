@@ -139,7 +139,7 @@ function resetFormMatpro(){
 function tambahMatpro(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    console.log(isEditMatkulProdi);
+    //console.log(isEditMatkulProdi);
     if (editIdMatkulProdi && isEditMatkulProdi !== null) {
         // Edit (update)
         router.put(route('matkul-prodi.update', isEditMatkulProdi), {

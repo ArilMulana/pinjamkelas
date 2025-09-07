@@ -1,13 +1,14 @@
 import Dashboard from "@/pages/dashboard";
 //import { RGedung } from '@/pages/building/r-gedung';
 import { RGedung } from '@/pages/building/r-gedung';
+import { Head } from "@inertiajs/react";
 //import { Testtable } from '@/pages/building/TestTable';
 export default function Index() {
     return(
         <Dashboard>
-            <head>
+            <Head>
                 <title>Gedung</title>
-            </head>
+            </Head>
             <RGedung>
                 {/* <Testtable> */}
 

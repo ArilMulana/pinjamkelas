@@ -26,9 +26,6 @@ export default function Dashboard({ children }:DashboardProps) {
                 <div className="bg-gray-100 relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
                     {/* <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" /> */}
                             { children }
-                        {/* <FormPinjamKelas>
-
-                        </FormPinjamKelas> */}
                 </div>
             </div>
         </AppLayout>

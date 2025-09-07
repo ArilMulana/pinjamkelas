@@ -1,11 +1,12 @@
 import Dashboard from "@/pages/dashboard";
 import { RFakultas } from '@/pages/fakultas/r-fakultas';
+import { Head } from "@inertiajs/react";
 export default function Index() {
     return(
         <Dashboard>
-            <head>
+            <Head>
                 <title>Fakultas</title>
-            </head>
+            </Head>
             <RFakultas>
 
             </RFakultas>

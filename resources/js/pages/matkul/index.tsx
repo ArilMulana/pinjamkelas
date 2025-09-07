@@ -1,12 +1,13 @@
 import Dashboard from "@/pages/dashboard";
 //import { DFloor } from '@/pages/floor/d-floor';
 import {DMatkul} from '@/pages/matkul/d-matkul';
+import { Head } from "@inertiajs/react";
 export default function Index() {
     return(
         <Dashboard>
-            <head>
+            <Head>
                 <title>Akademik</title>
-            </head>
+            </Head>
             <DMatkul>
 
             </DMatkul>

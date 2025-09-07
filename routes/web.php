@@ -82,8 +82,9 @@ Route::middleware(['auth', 'verified','role:1'])->group(function () {
     Route::delete('/dashboard/matkul/jadwal/{id}',[JadwalRuanganController::class,'destroy'])->name('jadwal.destroy');
 
     //User
-
     Route::get('/dashboard/user',[UserController::class,'index'])->name('user');
+    Route::put('/dashboard/user/{id}',[UserController::class,'update'])->name('user.update');
+    Route::delete('/dashboard/user/{id}',[UserController::class,'destroy'])->name('user.destroy');
 });
 
 
