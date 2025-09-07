@@ -8,8 +8,8 @@ use App\Http\Controllers\MataKuliahController;
 use App\Http\Controllers\MatakuliahProgramStudiController;
 use App\Http\Controllers\ProgramStudiController;
 use App\Http\Controllers\RoomController;
+use App\Http\Controllers\UserController;
 use App\Models\MatakuliahProgramStudi;
-use Faker\Provider\ar_EG\Internet;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -80,6 +80,10 @@ Route::middleware(['auth', 'verified','role:1'])->group(function () {
     Route::post('/cek-jadwal-bentrok', [JadwalRuanganController::class, 'cek']);
     Route::put('/dashboard/matkul/jadwal/{ruangan}',[JadwalRuanganController::class,'update'])->name('jadwal.update');
     Route::delete('/dashboard/matkul/jadwal/{id}',[JadwalRuanganController::class,'destroy'])->name('jadwal.destroy');
+
+    //User
+
+    Route::get('/dashboard/user',[UserController::class,'index'])->name('user');
 });
 
 

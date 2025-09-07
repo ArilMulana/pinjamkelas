@@ -15,7 +15,7 @@ type DataTableProps<T> = {
   columns: ColumnDef<T, unknown>[];
 };
 
-export default function DataTable<T extends Record<string, unknown>>({
+export default function DataTable<T extends object>({
   data,
   columns,
 }: DataTableProps<T>) {
