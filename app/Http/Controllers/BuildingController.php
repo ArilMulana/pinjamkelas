@@ -48,7 +48,8 @@ class BuildingController extends Controller
 
         Building::createBuilding($validated);
 
-     return Inertia::location(route('building'));
+    //  return Inertia::location(route('building'));
+     return redirect()->route('building')->with('success', 'Gedung berhasil ditambah');
     }
 
     /**

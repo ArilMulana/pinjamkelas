@@ -1,6 +1,6 @@
 import Dashboard from "@/pages/dashboard";
 //import { RGedung } from '@/pages/building/r-gedung';
-import { RGedung } from '@/pages/building/r-gedung';
+import { Main } from '@/pages/building/r-gedung';
 import { Head } from "@inertiajs/react";
 //import { Testtable } from '@/pages/building/TestTable';
 export default function Index() {
@@ -9,11 +9,11 @@ export default function Index() {
             <Head>
                 <title>Gedung</title>
             </Head>
-            <RGedung>
+            <Main>
                 {/* <Testtable> */}
 
                 {/* </Testtable> */}
-            </RGedung>
+            </Main>
         </Dashboard>
     );
 }

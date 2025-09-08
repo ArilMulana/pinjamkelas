@@ -6,9 +6,8 @@ export default function  Index(){
 
     return(
         <Dashboard>
-            <Head>
-                <title>User</title>
-            </Head>
+            <Head title="User" />
+
             <User>
 
             </User>

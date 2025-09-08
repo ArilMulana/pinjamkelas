@@ -1,4 +1,4 @@
-import { usePage, Link, router } from '@inertiajs/react';
+import { usePage, router, useForm } from '@inertiajs/react';
 import { useState, useMemo, useEffect } from 'react';
 import Swal from 'sweetalert2';
 
@@ -9,7 +9,7 @@ interface Gedung {
   lokasi: string;
 }
 
-export function RGedung() {
+export function Main() {
   const { gedungs } = usePage<{ gedungs: Gedung[] }>().props;
 
   // States untuk search, pagination, modal dan form
@@ -17,7 +17,12 @@ export function RGedung() {
   const [currentPage, setCurrentPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [selectedGedung, setSelectedGedung] = useState<Gedung | null>(null);
+   const [exists, setExists] = useState<boolean | null>(null);
   const [formData, setFormData] = useState({ name: '', code: '', lokasi: '' });
+  const [isLoading,setLoading] = useState(false);
+ const { errors } = useForm({
+    code: '',
+  });
   const itemsPerPage = 5;
 
   // Isi form saat modal dibuka (edit)
@@ -74,26 +79,95 @@ export function RGedung() {
     });
   }
 
-  // Membuka modal dan set data gedung yang akan diedit
+  function cancelModal(){
+    setShowModal(false);
+    setExists(null);
+    // setErrors();
+     setFormData({
+            name:'',
+            code:'',
+            lokasi:''
+        })
+  }  // Membuka modal dan set data gedung yang akan diedit
   function openEditModal(gedung: Gedung) {
     setSelectedGedung(gedung);
     setShowModal(true);
   }
 
+   const checkData = async () => {
+    const kode = formData.code;
+    //console.log(kode);
+     if (selectedGedung && selectedGedung.code === kode) {
+        setExists(false); // Tidak ada konflik, kode sama
+        return;
+    }
+    try {
+    const response = await fetch(`/dashboard/building/cek?value=${encodeURIComponent(kode)}`);
+      if (!response.ok) throw new Error('Gagal terhubung ke server');
+    const data = await response.json();
+        setExists(data.exists);
+    } catch (error) {
+         console.error('Gagal mengecek data:', error);
+        setExists(false);
+
+    }
+    };
+
+    function tambahGedung(){
+        setShowModal(true);
+        setSelectedGedung(null);
+
+    }
   // Submit form update gedung via PUT
   function handleModalSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!selectedGedung) return;
+    setLoading(true);
+    if (selectedGedung) {
+         router.put(`/dashboard/building/${selectedGedung.id}`, formData, {
+            onSuccess: () => {
+                Swal.fire('Berhasil', 'Data berhasil diperbarui', 'success');
+                setShowModal(false);
+                setLoading(false);
+                   setFormData({
+                    name:'',
+                    code:'',
+                    lokasi:''
+                })
+            },
+            onError: () => {
+                Swal.fire('Gagal', 'Terjadi kesalahan saat update', 'error');
+                 setLoading(false);
+            },
 
-    router.put(`/dashboard/building/${selectedGedung.id}`, formData, {
-      onSuccess: () => {
-        Swal.fire('Berhasil', 'Data berhasil diperbarui', 'success');
-        setShowModal(false);
-      },
-      onError: () => {
-        Swal.fire('Gagal', 'Terjadi kesalahan saat update', 'error');
-      },
-    });
+            });
+    }else{
+           // Create new building
+        router.post(route('building.store'), formData, {
+            onSuccess: () => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil',
+                    text: 'Gedung berhasil ditambahkan',
+                    confirmButtonText: 'OK',
+                })
+                setLoading(false);
+                setShowModal(false);
+                setFormData({
+                    name:'',
+                    code:'',
+                    lokasi:''
+                })
+            },
+            onError: () => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Terjadi Kesalahan',
+                    confirmButtonText: 'OK',
+                });
+                 setLoading(false);
+            },
+        });
+        }
   }
 
   return (
@@ -101,12 +175,12 @@ export function RGedung() {
       {/* Header + Add Button */}
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-gray-900">Daftar Gedung</h1>
-        <Link
-          href={route('create-building')}
-          className="inline-block px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded hover:bg-indigo-700 transition"
+        <button
+        onClick={tambahGedung}
+        className="inline-block px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded hover:bg-indigo-700 transition"
         >
-          + Tambah Gedung
-        </Link>
+        Tambah Gedung
+        </button>
       </div>
 
       {/* Search Input */}
@@ -212,10 +286,10 @@ export function RGedung() {
         </button>
       </div>
      {/* Modal Edit */}
-{showModal && selectedGedung && (
+{showModal &&  (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
     <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-lg">
-      <h2 className="text-2xl font-semibold mb-6 text-gray-900">Edit Gedung</h2>
+      <h2 className="text-2xl font-semibold mb-6 text-gray-900">{selectedGedung ? 'Edit Gedung' : 'Tambah Gedung'}</h2>
       <form onSubmit={handleModalSubmit} className="space-y-5">
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -240,11 +314,15 @@ export function RGedung() {
             id="code"
             type="text"
             value={formData.code}
+            onBlur={checkData}
             onChange={(e) => setFormData({ ...formData, code: e.target.value })}
             placeholder="Masukkan kode gedung"
             className="w-full p-3 border border-gray-300 rounded-md text-black focus:outline-none focus:ring-2 focus:ring-indigo-500"
             required
           />
+            {errors.code && <p className="mt-1 text-sm text-red-600">{errors.code}</p>}
+                      {exists === true && <p style={{ color: 'red' }}>Data sudah ada.</p>}
+                    {exists === false && <p style={{ color: 'green' }}>Data tersedia.</p>}
         </div>
 
         <div>
@@ -265,17 +343,21 @@ export function RGedung() {
         <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
           <button
             type="button"
-            onClick={() => setShowModal(false)}
+            onClick={cancelModal}
             className="px-5 py-2 rounded-md bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold transition"
           >
             Batal
           </button>
-          <button
+           <button
             type="submit"
-            className="px-5 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition"
-          >
-            Simpan
-          </button>
+            disabled={isLoading}
+            className={`rounded-md px-3 py-2 text-sm font-semibold text-white shadow-xs ${
+                isLoading || exists === true ? "bg-gray-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-500"
+            }`}
+            >
+            Save
+            {isLoading && <span className="ml-2 animate-spin">⏳</span>}
+            </button>
         </div>
       </form>
     </div>
@@ -285,3 +367,4 @@ export function RGedung() {
     </div>
   );
 }
+
