@@ -44,7 +44,6 @@ class JadwalRuanganRequest extends FormRequest
     protected function hasConflict(): bool
     {
         $jadwalId = $this->route('jadwal_ruangan'); // Sesuaikan dengan nama parameter route
-
         return JadwalRuangan::where('rooms_id', $this->rooms_id)
             ->where('hari', $this->hari)
             ->when($jadwalId, function ($query) use ($jadwalId) {

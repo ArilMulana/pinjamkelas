@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\FloorRequest;
 use App\Models\Floor;
+use App\Services\DataCheckerService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Building;
@@ -13,8 +15,11 @@ class FloorController extends Controller
     /**
      * Display a listing of the resource.
      */
-
-
+     protected $checker;
+      public function __construct(DataCheckerService $checker)
+    {
+        $this->checker = $checker;
+    }
      public function index()
     {
         $buildings = Building::select('id', 'name','code','lokasi')->get();
@@ -36,17 +41,9 @@ class FloorController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(FloorRequest $request)
     {
-       $validated = $request->validate([
-            'building_id' => 'required|exists:buildings,id',
-            'floor_number' => [
-                'required',
-                Rule::unique('floors')->where(function ($query) use ($request) {
-                    return $query->where('building_id', $request->input('building_id'));
-                }),
-            ],
-        ]);
+       $validated = $request->validated();
 
         Floor::createFloor($validated);
 
@@ -73,15 +70,7 @@ class FloorController extends Controller
      */
     public function update(Request $request,floor $floor)
     {
-        $validated = $request->validate([
-            'building_id' => 'required|exists:buildings,id',
-            'floor_number' => [
-                'required',
-                Rule::unique('floors')->where(function ($query) use ($request) {
-                    return $query->where('building_id', $request->input('building_id'));
-                }),
-            ],
-        ]);
+        $validated = $request->validated();
         $floor->update($validated);
          return redirect()->route('floor')->with('success', 'Lantai berhasil diperbarui');
     }
@@ -94,5 +83,19 @@ class FloorController extends Controller
         $floors = Floor::findOrFail($id);
         $floors->delete();
          return redirect()->back()->with('success', 'Lantai berhasil dihapus');
+    }
+
+    public function cek(Request $request)
+    {
+         $request->validate([
+        'building_id' => 'required|integer|exists:buildings,id',
+        'floor_number' => 'required|integer',
+        ]);
+
+        $exists = Floor::where('building_id', $request->building_id)
+                    ->where('floor_number', $request->floor_number)
+                    ->exists();
+
+        return response()->json(['exists' => $exists]);
     }
 }

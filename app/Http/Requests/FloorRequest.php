@@ -4,15 +4,16 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
-class StoreBuildingRequest extends FormRequest
+class FloorRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return Auth::user()?->role_id === 1;
+        return Auth::user()?->role_id===1;
     }
 
     /**
@@ -22,11 +23,14 @@ class StoreBuildingRequest extends FormRequest
      */
     public function rules(): array
     {
-        $gedungId = $this->route('building');
         return [
-            'name'=>'required|string|max:255',
-            'code'=>'required|string|max:100|unique:buildings,code',
-            'lokasi'=>'required|string'
-        ];
+        'building_id' => 'required|exists:buildings,id',
+        'floor_number' => [
+            'required',
+            Rule::unique('floors')->where(function ($query) {
+                return $query->where('building_id', $this->input('building_id'));
+            }),
+        ],
+    ];
     }
 }

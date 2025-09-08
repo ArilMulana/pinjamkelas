@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect} from 'react';
-import { usePage, router } from '@inertiajs/react';
+import { usePage, router, useForm } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 
 type Building = { id: number; name: string ; code:string; lokasi:string; };
@@ -14,6 +14,12 @@ export function DFloor() {
   const [data, setData] = useState<FloorData[]>(floors);
   const [selectedBuildingId, setSelectedBuildingId] = useState<number | null>(null);
   const [loading,setLoading] = useState(false);
+   const [exists, setExists] = useState<boolean | null>(null);
+
+    const { errors } = useForm({
+    //    building_id: '',
+       floor_number:'',
+     });
   //edit
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId,setEditId] = useState<number | null>(null);
@@ -51,6 +57,7 @@ export function DFloor() {
                 setIsEditMode(false);
                 setEditId(null);
                 setLoading(false);
+                setExists(null);
                 setForm({ building_id: 0, floor_number:0 });
                 Swal.fire('Sukses','Lantai Berhasil diperbarui','success');
             },
@@ -64,6 +71,7 @@ export function DFloor() {
             setForm({ building_id: 0, floor_number: 0 });
             setModalOpen(false);
             setLoading(false);
+            setExists(null);
             Swal.fire('Sukses', 'Lantai berhasil ditambahkan!', 'success');
         },
         onError: () => {
@@ -102,6 +110,7 @@ export function DFloor() {
             building_id:floor.building.id,
             floor_number:floor.floor_number
         });
+        setSelectedFloor(floor);
         setEditId(floor.id);
         setIsEditMode(true);
         setModalOpen(true);
@@ -145,6 +154,53 @@ const handleAddNewItem = () => {
           }
         }, [search]);
 
+    const [selectedFloor, setSelectedFloor] = useState<FloorData | null>(null);
+
+    const [oldForm, setOldForm] = useState({
+    building_id: selectedFloor?.building.id || "",
+    floor_number: selectedFloor?.floor_number || "",
+    });
+
+    const isChanged = useMemo(() => {
+    if (!selectedFloor) return false; // kalau tambah baru, dianggap false
+    return (
+        String(oldForm.building_id) !== String(form.building_id) ||
+        String(oldForm.floor_number) !== String(form.floor_number)
+    );
+    }, [oldForm, form,selectedFloor]);
+
+    // cek data hanya kalau ada perubahan
+    useEffect(() => {
+    if (!isChanged) {
+        setExists(false);
+        return;
+    }
+    if (!form.building_id || !form.floor_number) return;
+    const checkData = async () => {
+        try {
+        const response = await fetch(
+            `/dashboard/floor/cek-floor?building_id=${encodeURIComponent(
+            form.building_id
+            )}&floor_number=${encodeURIComponent(form.floor_number)}`
+        );
+        const data = await response.json();
+        setExists(data.exists);
+        } catch (err) {
+        console.error("Gagal mengecek data:", err);
+        setExists(false);
+        }
+    };
+    checkData();
+    }, [form, isChanged]);
+
+function cancelModal(){
+    setExists(null);
+    setModalOpen(false);
+    setOldForm({
+        building_id:'',
+        floor_number:'',
+    })
+}
   return (
     <div className="p-6 bg-white rounded-lg shadow-md text-black">
       <div className="flex justify-between items-center mb-4">
@@ -196,29 +252,37 @@ const handleAddNewItem = () => {
                 <input
                   type="number"
                   name="floor_number"
-
+                //   onBlur={checkData}
                   value={form.floor_number || ''}
                   onChange={handleInputChange}
                   className="w-full p-2 border border-gray-300 rounded"
                   min={1}
                   required
                 />
+                  {errors.floor_number && <p className="mt-1 text-sm text-red-600">{errors.floor_number}</p>}
+                      {exists === true && <p style={{ color: 'red' }}>Data sudah ada.</p>}
+                    {exists === false && <p style={{ color: 'green' }}>Data tersedia.</p>}
               </div>
 
               <div className="flex justify-end space-x-2 pt-4">
                 <button
                   type="button"
-                  onClick={() => setModalOpen(false)}
+                  onClick={cancelModal}
                   className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
                 >
                   Batal
                 </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                  style={{ cursor:loading?'progress':'pointer' }}
+               <button
+                type="submit"
+                disabled={loading}
+                className={`px-4 py-2 rounded text-white ${
+                    loading || exists ===true
+                    ? 'bg-blue-400 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                }`}
                 >
-                 {loading?'Menyimpan...':'Simpan' }
+                Save
+                {loading && <span className='ml-2 animated-spin'>⏳</span> }
                 </button>
               </div>
             </form>

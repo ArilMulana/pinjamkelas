@@ -1,28 +1,25 @@
 <?php
 
-use App\Models\JadwalRuangan;
-use Illuminate\Http\Request;
+use App\Http\Controllers\BuildingController;
+use App\Http\Controllers\FloorController;
+use App\Http\Controllers\JadwalRuanganController;
+use App\Http\Controllers\MataKuliahController;
 use Illuminate\Support\Facades\Route;
 
-// Route::middleware(['cors'])->group(function () {
-// Route::post('/cek-matakuliah', function (Request $request) {
-//     $kode = $request->input('kode');
+Route::middleware(['auth', 'verified','role:1'])->group(function () {
 
-//     // Contoh logic cek kode matakuliah
-//     if ($kode === 'ABC123') {
-//         return response()->json([
-//             'exists' => true,
-//             'message' => 'Kode matakuliah ditemukan'
-//         ]);
-//     }
+    //API Jadwal
+      Route::post('/cek-jadwal-bentrok', [JadwalRuanganController::class, 'cek']);
 
-//     return response()->json([
-//         'exists' => false,
-//         'message' => 'Kode matakuliah tidak ditemukan'
-//     ]);
-// });
+      //API Matakuliah
+      Route::get('/dashboard/matkul/cek-matakuliah', [MataKuliahController::class, 'cek']);
 
-// });
+      //API Cek Code gedung
+     Route::get('/dashboard/building/cek',[BuildingController::class,'cek']);
 
+     //API Cek Lantai
+
+     Route::get('/dashboard/floor/cek-floor',[FloorController::class,'cek']);
+});
 
 ?>

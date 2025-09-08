@@ -66,7 +66,7 @@ Route::middleware(['auth', 'verified','role:1'])->group(function () {
     Route::put('/dashboard/matkul/{matkul}',[MataKuliahController::class,'update'])->name('matkul.update');
     Route::delete('/dashboard/matkul/{id}',[MataKuliahController::class,'destroy'])->name('matkul.destroy');
     Route::post('/dashboard/matkul/import', [MataKuliahController::class, 'importExcel'])->name('matkul.import');
-    Route::get('/dashboard/matkul/cek-matakuliah', [MataKuliahController::class, 'cek']);
+
 
     //matakuliah program studi
     Route::get('/dashboard/matkul/prodi',[MatakuliahProgramStudiController::class,'index'])->name('matkul-prodi');
@@ -77,7 +77,7 @@ Route::middleware(['auth', 'verified','role:1'])->group(function () {
     //Jadwal Matakuliah
     Route::get('/dashboard/matkul/jadwal',[JadwalRuanganController::class,'index'])->name('jadwal-matkul');
     Route::post('/dashboard/matkul/jadwal/create/process',[JadwalRuanganController::class,'store'])->name('jadwal-matkul.store');
-    Route::post('/cek-jadwal-bentrok', [JadwalRuanganController::class, 'cek']);
+
     Route::put('/dashboard/matkul/jadwal/{ruangan}',[JadwalRuanganController::class,'update'])->name('jadwal.update');
     Route::delete('/dashboard/matkul/jadwal/{id}',[JadwalRuanganController::class,'destroy'])->name('jadwal.destroy');
 
@@ -90,3 +90,4 @@ Route::middleware(['auth', 'verified','role:1'])->group(function () {
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+require __DIR__.'/api.php';
