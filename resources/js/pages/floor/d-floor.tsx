@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect} from 'react';
-import { usePage, router, useForm } from '@inertiajs/react';
+import { usePage, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 
 type Building = { id: number; name: string ; code:string; lokasi:string; };
@@ -15,11 +15,6 @@ export function DFloor() {
   const [selectedBuildingId, setSelectedBuildingId] = useState<number | null>(null);
   const [loading,setLoading] = useState(false);
    const [exists, setExists] = useState<boolean | null>(null);
-
-    const { errors } = useForm({
-    //    building_id: '',
-       floor_number:'',
-     });
   //edit
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId,setEditId] = useState<number | null>(null);
@@ -161,6 +156,15 @@ const handleAddNewItem = () => {
     floor_number: selectedFloor?.floor_number || "",
     });
 
+    useEffect(() => {
+    if (selectedFloor) {
+        setOldForm({
+        building_id: String(selectedFloor.building.id),
+        floor_number: String(selectedFloor.floor_number),
+        });
+    }
+    }, [selectedFloor]);
+
     const isChanged = useMemo(() => {
     if (!selectedFloor) return false; // kalau tambah baru, dianggap false
     return (
@@ -196,10 +200,6 @@ const handleAddNewItem = () => {
 function cancelModal(){
     setExists(null);
     setModalOpen(false);
-    setOldForm({
-        building_id:'',
-        floor_number:'',
-    })
 }
   return (
     <div className="p-6 bg-white rounded-lg shadow-md text-black">
@@ -259,9 +259,14 @@ function cancelModal(){
                   min={1}
                   required
                 />
-                  {errors.floor_number && <p className="mt-1 text-sm text-red-600">{errors.floor_number}</p>}
-                      {exists === true && <p style={{ color: 'red' }}>Data sudah ada.</p>}
-                    {exists === false && <p style={{ color: 'green' }}>Data tersedia.</p>}
+            {isChanged && exists === true && (
+            <p className="text-red-600 mt-1">Data sudah ada.</p>
+            )}
+
+            {isChanged && exists === false && (
+            <p className="text-green-600 mt-1">Data tersedia.</p>
+            )}
+
               </div>
 
               <div className="flex justify-end space-x-2 pt-4">
@@ -272,18 +277,23 @@ function cancelModal(){
                 >
                   Batal
                 </button>
-               <button
-                type="submit"
-                disabled={loading}
-                className={`px-4 py-2 rounded text-white ${
-                    loading || exists ===true
-                    ? 'bg-blue-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700'
-                }`}
-                >
-                Save
-                {loading && <span className='ml-2 animated-spin'>⏳</span> }
-                </button>
+            <button
+            type="submit"
+            disabled={loading || !isChanged || exists === true}
+            className={`px-4 py-2 rounded text-white ${
+                loading || !isChanged || exists === true
+                ? 'bg-blue-400 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700'
+            }`}
+            >
+            {loading ? (
+                <>
+                Menyimpan... <span className="ml-2 animate-spin">⏳</span>
+                </>
+            ) : (
+                'Save'
+            )}
+            </button>
               </div>
             </form>
           </div>
