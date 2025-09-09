@@ -29,19 +29,16 @@ class MatakuliahProgramStudiController extends Controller
 
       public function store(Request $request)
     {
-
-            $validated = $request->validate([
+      $validated = $request->validate([
         'program_studi_id' => 'required|exists:program_studis,id',
         'matakuliah_ids' => 'required|array',
         'matakuliah_ids.*' => 'exists:mata_kuliahs,id',
     ]);
 
-    foreach ($validated['matakuliah_ids'] as $matkulId) {
-        MatakuliahProgramStudi::create([
-            'program_studi_id' => $validated['program_studi_id'],
-            'matakuliah_id' => $matkulId,
-        ]);
-    }
+    $programStudi = ProgramStudi::findOrFail($validated['program_studi_id']);
+
+    // tambahkan matakuliah ke pivot tanpa menghapus yang lama
+    $programStudi->mataKuliahs()->syncWithoutDetaching($validated['matakuliah_ids']);
     return redirect()->back()->with('success', 'Program Studi berhasil ditambahkan');
     }
 

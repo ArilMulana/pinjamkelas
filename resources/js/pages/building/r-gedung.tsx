@@ -1,4 +1,4 @@
-import { usePage, router, useForm } from '@inertiajs/react';
+import { usePage, router } from '@inertiajs/react';
 import { useState, useMemo, useEffect } from 'react';
 import Swal from 'sweetalert2';
 
@@ -20,9 +20,6 @@ export function Main() {
    const [exists, setExists] = useState<boolean | null>(null);
   const [formData, setFormData] = useState({ name: '', code: '', lokasi: '' });
   const [isLoading,setLoading] = useState(false);
- const { errors } = useForm({
-    code: '',
-  });
   const itemsPerPage = 5;
 
   // Isi form saat modal dibuka (edit)
@@ -82,19 +79,44 @@ export function Main() {
   function cancelModal(){
     setShowModal(false);
     setExists(null);
-    // setErrors();
-     setFormData({
-            name:'',
-            code:'',
-            lokasi:''
-        })
-  }  // Membuka modal dan set data gedung yang akan diedit
+  }
   function openEditModal(gedung: Gedung) {
     setSelectedGedung(gedung);
     setShowModal(true);
   }
 
-   const checkData = async () => {
+   const [originalKode, setOriginalKode] = useState('');
+      const [originalData, setOriginalData] = useState({
+      name:'',
+      lokasi:'',
+      code:''
+       });
+    useEffect(() => {
+    if (selectedGedung) {
+        setOriginalKode(selectedGedung.code || '');
+        setOriginalData({
+        name: selectedGedung.name || '',
+        lokasi: selectedGedung.lokasi || '',
+        code: selectedGedung.code || '',
+        });
+    }
+    }, [selectedGedung]);
+
+
+        const fieldsToCheck: (keyof typeof formData)[] = [
+        "name",
+        "lokasi",
+        ];
+        const isFieldChanged = fieldsToCheck.some(
+        (field) => formData[field] !== originalData[field]
+        );
+        const isCodeSame = formData.code === originalKode;
+        const isDisabled: boolean =
+        !!isLoading ||
+        !!exists ||
+        (!!selectedGedung?.code && isCodeSame && !isFieldChanged);
+
+    const checkData = async () => {
     const kode = formData.code;
     //console.log(kode);
      if (selectedGedung && selectedGedung.code === kode) {
@@ -116,7 +138,11 @@ export function Main() {
     function tambahGedung(){
         setShowModal(true);
         setSelectedGedung(null);
-
+           setFormData({
+            name:'',
+            code:'',
+            lokasi:''
+        })
     }
   // Submit form update gedung via PUT
   function handleModalSubmit(e: React.FormEvent) {
@@ -320,9 +346,9 @@ export function Main() {
             className="w-full p-3 border border-gray-300 rounded-md text-black focus:outline-none focus:ring-2 focus:ring-indigo-500"
             required
           />
-            {errors.code && <p className="mt-1 text-sm text-red-600">{errors.code}</p>}
+            {/* {errors.code && <p className="mt-1 text-sm text-red-600">{errors.code}</p>} */}
                       {exists === true && <p style={{ color: 'red' }}>Data sudah ada.</p>}
-                    {exists === false && <p style={{ color: 'green' }}>Data tersedia.</p>}
+                    {exists === false && !isDisabled && <p style={{ color: 'green' }}>Data tersedia.</p>}
         </div>
 
         <div>
@@ -348,15 +374,14 @@ export function Main() {
           >
             Batal
           </button>
-           <button
-            type="submit"
-            disabled={isLoading}
-            className={`rounded-md px-3 py-2 text-sm font-semibold text-white shadow-xs ${
-                isLoading || exists === true ? "bg-gray-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-500"
-            }`}
-            >
-            Save
-            {isLoading && <span className="ml-2 animate-spin">⏳</span>}
+          <button
+                type="submit"
+                disabled={isDisabled}
+                className={`px-4 py-2 text-white rounded ${
+                    isDisabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
+                }`}
+                >
+                {isLoading ? 'Menyimpan...' : exists === true ? 'Kode Duplikat' : 'Simpan'}
             </button>
         </div>
       </form>

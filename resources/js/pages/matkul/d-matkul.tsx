@@ -33,15 +33,26 @@ export function DMatkul() {
      tipe:''
      });
     const [exists, setExists] = useState<boolean | null>(null);
-    const isKodeSama = formDataMatkul.kode_matakuliah === originalKode;
-const isNamaMatkulBerubah = formDataMatkul.nama_matakuliah !== originalData.nama_matakuliah;
-const isSKSBerubah = formDataMatkul.sks !== originalData.sks;
-const isTipeBerubah = formDataMatkul.tipe !== originalData.tipe;
 
+const fieldsToCheck: (keyof typeof formDataMatkul)[] = [
+  "nama_matakuliah",
+  "sks",
+  "tipe",
+];
+
+// cek apakah ada perubahan di salah satu field
+const isFieldChanged = fieldsToCheck.some(
+  (field) => formDataMatkul[field] !== originalData[field]
+);
+
+// cek kode matakuliah sama atau tidak
+const isKodeSama = formDataMatkul.kode_matakuliah === originalKode;
+
+// final disabled logic
 const isDisabled =
   loading ||
   exists === true ||
- (isEditMode && isKodeSama && (!isNamaMatkulBerubah && !isSKSBerubah && !isTipeBerubah));
+  (isEditMode && isKodeSama && !isFieldChanged);
 
    const checkData = useCallback(async () => {
   const kode = formDataMatkul.kode_matakuliah;
@@ -91,7 +102,7 @@ useEffect(() => {
     });  // reset originalData agar form kembali ke default saat batal
   }
 
-        function handleSubmit(e: React.FormEvent) {
+    function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         setLoading(true);
         if (!isEditMode && exists === true) {
@@ -226,7 +237,26 @@ useEffect(() => {
   ];
 
   if (!matkul || !matkul.data) {
-    return <div>Loading...</div>;
+    return (
+           <div className="flex flex-col items-center justify-center p-8 bg-red-50 border border-red-300 rounded-lg shadow-md min-h-[150px]">
+            <svg
+            className="w-12 h-12 mb-4 text-red-500"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            >
+            <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v2m0 4h.01M12 5a7 7 0 110 14 7 7 0 010-14z"
+            ></path>
+            </svg>
+            <p className="text-red-700 font-semibold text-lg">Tidak ada data</p>
+            <p className="text-red-500 text-sm">Silakan tambahkan data terlebih dahulu.</p>
+        </div>
+    );
   }
 
 

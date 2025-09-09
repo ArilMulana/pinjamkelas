@@ -19,4 +19,13 @@ class MataKuliah extends Model
         return $this->hasMany(MatakuliahProgramStudi::class);
     }
 
+    public function programStudis()
+    {
+    return $this->belongsToMany(
+        ProgramStudi::class,
+        'matakuliah_program_studi',
+        'matakuliah_id',              // FK ke mata_kuliahs
+        'program_studi_id'            // FK ke program_studis
+    );
+    }
 }

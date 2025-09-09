@@ -151,51 +151,111 @@ const handleAddNewItem = () => {
 
     const [selectedFloor, setSelectedFloor] = useState<FloorData | null>(null);
 
-    const [oldForm, setOldForm] = useState({
-    building_id: selectedFloor?.building.id || "",
-    floor_number: selectedFloor?.floor_number || "",
-    });
+    // state untuk menyimpan data lama (original)
+const [originalBuildingId, setOriginalBuildingId] = useState("");
+const [originalFloorNumber, setOriginalFloorNumber] = useState("");
 
-    useEffect(() => {
-    if (selectedFloor) {
-        setOldForm({
-        building_id: String(selectedFloor.building.id),
-        floor_number: String(selectedFloor.floor_number),
-        });
-    }
-    }, [selectedFloor]);
+// isi state ketika selectedFloor berubah
+useEffect(() => {
+  if (selectedFloor) {
+    setOriginalBuildingId(String(selectedFloor.building.id));
+    setOriginalFloorNumber(String(selectedFloor.floor_number));
+  } else {
+    setOriginalBuildingId("");
+    setOriginalFloorNumber("");
+  }
+}, [selectedFloor]);
 
-    const isChanged = useMemo(() => {
+// cek apakah ada perubahan data
+   const isFieldChanged = useMemo(() => {
     if (!selectedFloor) return false; // kalau tambah baru, dianggap false
     return (
-        String(oldForm.building_id) !== String(form.building_id) ||
-        String(oldForm.floor_number) !== String(form.floor_number)
+        String(originalBuildingId) !== String(form.building_id) ||
+        String(originalFloorNumber) !== String(form.floor_number)
     );
-    }, [oldForm, form,selectedFloor]);
+    }, [originalBuildingId,originalFloorNumber, form,selectedFloor]);
 
-    // cek data hanya kalau ada perubahan
-    useEffect(() => {
-    if (!isChanged) {
-        setExists(false);
-        return;
+// kondisi disabled (contoh mirip building)
+const isDisabled: boolean =
+  !!loading ||
+  !!exists ||
+  (!!selectedFloor?.id && !isFieldChanged);
+
+// fungsi cek duplikat floor
+useEffect(() => {
+  if (!isFieldChanged) {
+    setExists(false);
+    return;
+  }
+
+  if (!form.building_id || !form.floor_number) return;
+
+  const checkData = async () => {
+    try {
+      const response = await fetch(
+        `/dashboard/floor/cek-floor?building_id=${encodeURIComponent(
+          form.building_id
+        )}&floor_number=${encodeURIComponent(form.floor_number)}`
+      );
+
+      if (!response.ok) throw new Error("Gagal terhubung ke server");
+      const data = await response.json();
+      setExists(!!data.exists);
+    } catch (err) {
+      console.error("Gagal mengecek data:", err);
+      setExists(false);
     }
-    if (!form.building_id || !form.floor_number) return;
-    const checkData = async () => {
-        try {
-        const response = await fetch(
-            `/dashboard/floor/cek-floor?building_id=${encodeURIComponent(
-            form.building_id
-            )}&floor_number=${encodeURIComponent(form.floor_number)}`
-        );
-        const data = await response.json();
-        setExists(data.exists);
-        } catch (err) {
-        console.error("Gagal mengecek data:", err);
-        setExists(false);
-        }
-    };
-    checkData();
-    }, [form, isChanged]);
+  };
+
+  checkData();
+}, [form, isFieldChanged]);
+
+    // const [oldForm, setOldForm] = useState({
+    // building_id: selectedFloor?.building.id || "",
+    // floor_number: selectedFloor?.floor_number || "",
+    // });
+
+    // useEffect(() => {
+    // if (selectedFloor) {
+    //     setOldForm({
+    //     building_id: String(selectedFloor.building.id),
+    //     floor_number: String(selectedFloor.floor_number),
+    //     });
+    // }
+    // }, [selectedFloor]);
+
+    // const isChanged = useMemo(() => {
+    // if (!selectedFloor) return false; // kalau tambah baru, dianggap false
+    // return (
+    //     String(oldForm.building_id) !== String(form.building_id) ||
+    //     String(oldForm.floor_number) !== String(form.floor_number)
+    // );
+    // }, [oldForm, form,selectedFloor]);
+
+    // // cek data hanya kalau ada perubahan
+    // useEffect(() => {
+    // if (!isChanged) {
+    //     setExists(false);
+    //     return;
+    // }
+    // if (!form.building_id || !form.floor_number) return;
+
+    // const checkData = async () => {
+    //     try {
+    //     const response = await fetch(
+    //         `/dashboard/floor/cek-floor?building_id=${encodeURIComponent(
+    //         form.building_id
+    //         )}&floor_number=${encodeURIComponent(form.floor_number)}`
+    //     );
+    //     const data = await response.json();
+    //     setExists(data.exists);
+    //     } catch (err) {
+    //     console.error("Gagal mengecek data:", err);
+    //     setExists(false);
+    //     }
+    // };
+    // checkData();
+    // }, [form, isChanged]);
 
 function cancelModal(){
     setExists(null);
@@ -259,11 +319,11 @@ function cancelModal(){
                   min={1}
                   required
                 />
-            {isChanged && exists === true && (
+            {isFieldChanged && exists === true && (
             <p className="text-red-600 mt-1">Data sudah ada.</p>
             )}
 
-            {isChanged && exists === false && (
+            {isFieldChanged && exists === false && (
             <p className="text-green-600 mt-1">Data tersedia.</p>
             )}
 
@@ -277,22 +337,14 @@ function cancelModal(){
                 >
                   Batal
                 </button>
-            <button
-            type="submit"
-            disabled={loading || !isChanged || exists === true}
-            className={`px-4 py-2 rounded text-white ${
-                loading || !isChanged || exists === true
-                ? 'bg-blue-400 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700'
-            }`}
-            >
-            {loading ? (
-                <>
-                Menyimpan... <span className="ml-2 animate-spin">⏳</span>
-                </>
-            ) : (
-                'Save'
-            )}
+                <button
+                type="submit"
+                disabled={isDisabled}
+                className={`px-4 py-2 text-white rounded ${
+                    isDisabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
+                }`}
+                >
+                {loading ? 'Menyimpan...' : exists === true ? 'Kode Duplikat' : 'Simpan'}
             </button>
               </div>
             </form>

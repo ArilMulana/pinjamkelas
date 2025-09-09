@@ -19,4 +19,14 @@ class ProgramStudi extends Model
     {
         return $this->hasMany(MatakuliahProgramStudi::class);
     }
+
+    public function mataKuliahs()
+    {
+        return $this->belongsToMany(
+            Matakuliah::class,
+            'matakuliah_program_studi',   // nama tabel pivot
+            'program_studi_id',           // FK ke program_studis
+            'matakuliah_id'               // FK ke mata_kuliahs
+        );
+    }
 }

@@ -206,26 +206,33 @@ function tambahJadwal(e:React.FormEvent) {
 
 }
 
-
 useEffect(() => {
   const selectedMataKuliah = matprodi.find(
     (mk) => mk.id === formDataJadwal.matakuliah_id
   );
+
   if (selectedMataKuliah && formDataJadwal.jam_mulai) {
     const sks = selectedMataKuliah.matakuliah.sks;
     const tambahanMenit = sks * 45;
 
+    // pastikan jam_mulai selalu format HH:MM
     const [jam, menit] = formDataJadwal.jam_mulai.split(':').map(Number);
     const mulaiDate = new Date();
     mulaiDate.setHours(jam);
     mulaiDate.setMinutes(menit);
 
+    // hitung jam selesai
     mulaiDate.setMinutes(mulaiDate.getMinutes() + tambahanMenit);
 
+    // format jam selesai → "HH:MM"
     const jamSelesaiFormatted = mulaiDate.toTimeString().slice(0, 5);
+
+    // format ulang jam_mulai → "HH:MM"
+    const jamMulaiFormatted = `${String(jam).padStart(2, "0")}:${String(menit).padStart(2, "0")}`;
 
     setFormDataJadwal((prev) => ({
       ...prev,
+      jam_mulai: jamMulaiFormatted,
       jam_selesai: jamSelesaiFormatted,
     }));
   }

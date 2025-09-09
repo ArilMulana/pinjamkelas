@@ -31,7 +31,7 @@ Route::middleware(['auth', 'verified','role:1'])->group(function () {
     Route::delete('/dashboard/building/{id}', [BuildingController::class, 'destroy'])->name('building.destroy');
     Route::get('/dashboard/building/{building}/edit', [BuildingController::class, 'edit'])->name('building.edit');
     Route::put('/dashboard/building/{building}', [BuildingController::class, 'update'])->name('building.update');
-    Route::get('/dashboard/building/cek',[BuildingController::class,'cek']);
+
 
     //floor
     Route::get('/dashboard/floor',[FloorController::class,'index'])->name('floor');

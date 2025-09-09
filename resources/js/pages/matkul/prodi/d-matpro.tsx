@@ -739,11 +739,13 @@ const paginatedFakultas = fakultas.slice(
                     Cancel
                 </button>
                 <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                  style={{ cursor:loading?'progress':'pointer' }}
+                type="submit"
+                disabled={loading}
+                className={`px-4 py-2 text-white rounded ${
+                    loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
+                }`}
                 >
-                 {loading?'Menyimpan...':'Simpan' }
+                {loading ? 'Menyimpan...': 'Simpan'}
                 </button>
                 </div>
             </div>
