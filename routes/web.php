@@ -65,8 +65,8 @@ Route::middleware(['auth', 'verified','role:1'])->group(function () {
     Route::post('/dashboard/matkul/create/process',[MataKuliahController::class,'store'])->name('matkul.store');
     Route::put('/dashboard/matkul/{matkul}',[MataKuliahController::class,'update'])->name('matkul.update');
     Route::delete('/dashboard/matkul/{id}',[MataKuliahController::class,'destroy'])->name('matkul.destroy');
-    Route::post('/dashboard/matkul/import', [MataKuliahController::class, 'importExcel'])->name('matkul.import');
-
+    Route::post('/dashboard/matkul/preview', [MataKuliahController::class, 'preview'])->name('matkul.preview');
+    Route::post('/dashboard/matkul/importExcel', [MataKuliahController::class, 'import'])->name('matkul.import-excel');
 
     //matakuliah program studi
     Route::get('/dashboard/matkul/prodi',[MatakuliahProgramStudiController::class,'index'])->name('matkul-prodi');

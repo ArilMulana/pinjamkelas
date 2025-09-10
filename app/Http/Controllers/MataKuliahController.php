@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Imports\MatkulImport;
+use App\Imports\MatkulPreviewImport;
 use App\Models\Fakultas;
 use App\Models\MataKuliah;
 use App\Models\ProgramStudi;
@@ -34,7 +35,7 @@ class MataKuliahController extends Controller
             }
 
             // ✨ Pagination (default 10 per page)
-            $perPage = $request->get('per_page', 50);
+            $perPage = $request->get('per_page', 10000);
             $matkul = $query->paginate($perPage)->withQueryString();
             //   $matkul = $query->get();
             $fakultas = Fakultas::all();
@@ -45,9 +46,8 @@ class MataKuliahController extends Controller
                 'filters' => $request->only(['search', 'sort_by', 'sort_dir']),
                 'fakultas'=>$fakultas,
                 'prodi'=>$prodi,
+                'rows'=>session('rows'),
             ]);
-
-
             }
 
 
@@ -55,29 +55,83 @@ class MataKuliahController extends Controller
      * Show the form for creating a new resource.
      */
 
-    public function importExcel(Request $request)
+   public function preview(Request $request)
 {
-      $request->validate([
+    $request->validate([
         'file_excel' => 'required|file|mimes:xlsx,xls,csv',
     ]);
-    try {
-        Excel::import(new MatkulImport, $request->file('file_excel'));
-    } catch (ValidationException $e) {
-        // Log error untuk debugging
-        Log::error('Import Validation Failed', [
-            'errors' => $e->failures(),
+
+    $data = Excel::toArray(new MatkulPreviewImport, $request->file('file_excel'));
+    $rows = $data[0];
+
+    $existingCodes = MataKuliah::pluck('kode_matakuliah')->toArray();
+
+    // ambil semua kode di excel
+    $excelCodes = array_map(fn($row) => $row[0] ?? null, array_slice($rows, 1));
+    $duplicateInExcel = array_keys(array_filter(array_count_values($excelCodes), fn($c) => $c > 1));
+
+    $rowsWithFlags = collect($rows)->skip(1)->map(function($row) use ($existingCodes, $duplicateInExcel) {
+        $status = '';
+
+        // cek kode duplikat di DB
+        if (in_array($row[0], $existingCodes)) {
+            $status = 'Sudah ada di database';
+        }
+        // cek kode duplikat di file excel
+        elseif (in_array($row[0], $duplicateInExcel)) {
+            $status = 'Duplikat di file Excel';
+        }
+        // cek validasi tipe
+        elseif (!in_array(strtolower($row[3] ?? ''), ['wajib','umum'])) {
+            $status = 'Tipe harus wajib/umum';
+        }
+
+        return [
+            'kode_matakuliah' => $row[0] ?? '',
+            'nama_matakuliah' => $row[1] ?? '',
+            'sks'             => $row[2] ?? 0,
+            'tipe'            => isset($row[3]) ? strtolower($row[3]) : '', // aman
+            'status'          => $status,
+        ];
+    })->values();
+
+    return back()->with(['rows' => $rowsWithFlags]);
+}
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'rows' => 'required|array',
         ]);
 
-        return back()->withErrors($e->failures());
-    } catch (\Throwable $e) {
-        // Catch semua error lainnya
-        Log::error('Import Failed: ' . $e->getMessage());
+        foreach ($request->rows as $row) {
+            // skip baris error
+            if (!empty($row['status'])) continue;
 
-        return back()->withErrors(['file_excel' => 'Terjadi kesalahan saat import: ' . $e->getMessage()]);
+            // ambil kolom dengan key
+            $kode = $row['kode_matakuliah'] ?? '';
+            $nama = $row['nama_matakuliah'] ?? '';
+            $sks  = $row['sks'] ?? 0;
+            $tipe = isset($row['tipe']) ? strtolower($row['tipe']) : 'wajib';
+
+            // Validasi tipe
+            if (!in_array($tipe, ['wajib', 'umum'])) continue;
+
+            if (!empty($kode) && !empty($nama)) {
+                MataKuliah::create([
+                    'kode_matakuliah' => $kode,
+                    'nama_matakuliah' => $nama,
+                    'sks'             => $sks,
+                    'tipe'            => $tipe,
+                ]);
+            }
+        }
+
+        return redirect()->route('matkul')
+            ->with('success', 'Data valid berhasil disimpan! Baris error dilewati.');
     }
 
-      return redirect()->route('matkul')->with('success', 'Matakuliah berhasil ditambahkan');
-}
+
     public function create()
     {
         //
@@ -141,7 +195,7 @@ class MataKuliahController extends Controller
      */
     public function destroy($id)
     {
-            $matkul = MataKuliah::findOrFail($id);
+        $matkul = MataKuliah::findOrFail($id);
         $matkul->delete();
         return redirect()->back()->with('success', 'Matakuliah berhasil dihapus');
     }
