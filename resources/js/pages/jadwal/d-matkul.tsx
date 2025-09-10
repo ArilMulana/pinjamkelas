@@ -81,7 +81,7 @@ export function JadwalMatkul() {
         </div>
         ),
     }));
-    }, [jadwalRuangan,deleteJadwal,editJadwal]);
+    }, [jadwalRuangan,editJadwal]);
 
 const columns:ColumnDef<Jadwal>[] = [
 
