@@ -45,10 +45,14 @@ export function Main() {
 
   // Pagination
   const totalPages = Math.ceil(filteredGedungs.length / itemsPerPage);
-  const paginatedGedungs = filteredGedungs.slice(
+  const paginatedGedungs = useMemo(()=>{
+    return filteredGedungs.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
-  );
+    );
+  },[filteredGedungs,currentPage,itemsPerPage]);
+
+
 
   // Pagination handlers
   const handlePrev = () => setCurrentPage((p) => Math.max(p - 1, 1));
@@ -250,7 +254,7 @@ export function Main() {
                   <td className="px-4 py-3 text-sm">
                     {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
-                         <td className="px-4 py-3 text-sm">{gedung.code}</td>
+                    <td className="px-4 py-3 text-sm">{gedung.code}</td>
                   <td className="px-4 py-3 text-sm">{gedung.name}</td>
                   <td className="px-4 py-3 text-sm">{gedung.lokasi}</td>
                   <td className="px-4 py-3 text-sm space-x-3">

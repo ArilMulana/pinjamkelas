@@ -60,10 +60,12 @@ export function DRoom() {
   // Pagination
   const itemsPerPage = 5;
   const totalPages = Math.ceil(filteredBuilding.length / itemsPerPage);
-  const paginatedGedungs = filteredBuilding.slice(
+  const paginatedGedungs = useMemo(()=>{
+    return filteredBuilding.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
-  );
+    );
+    },[filteredBuilding,itemsPerPage,currentPage]);
 
   // Building toggle handler
   const toggleBuilding = (id: number) => {
@@ -180,7 +182,8 @@ export function DRoom() {
   };
 
   // Filter rooms by selected floor
-  const selectedFloorRooms = data.filter(room => room.floor_id === selectedFloorId);
+  const selectedFloorRooms = useMemo(()=>{
+    return data.filter(room => room.floor_id === selectedFloorId)},[data,selectedFloorId]);
 
   return (
 

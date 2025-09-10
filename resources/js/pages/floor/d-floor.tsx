@@ -210,52 +210,12 @@ useEffect(() => {
   checkData();
 }, [form, isFieldChanged]);
 
-    // const [oldForm, setOldForm] = useState({
-    // building_id: selectedFloor?.building.id || "",
-    // floor_number: selectedFloor?.floor_number || "",
-    // });
-
-    // useEffect(() => {
-    // if (selectedFloor) {
-    //     setOldForm({
-    //     building_id: String(selectedFloor.building.id),
-    //     floor_number: String(selectedFloor.floor_number),
-    //     });
-    // }
-    // }, [selectedFloor]);
-
-    // const isChanged = useMemo(() => {
-    // if (!selectedFloor) return false; // kalau tambah baru, dianggap false
-    // return (
-    //     String(oldForm.building_id) !== String(form.building_id) ||
-    //     String(oldForm.floor_number) !== String(form.floor_number)
-    // );
-    // }, [oldForm, form,selectedFloor]);
-
-    // // cek data hanya kalau ada perubahan
-    // useEffect(() => {
-    // if (!isChanged) {
-    //     setExists(false);
-    //     return;
-    // }
-    // if (!form.building_id || !form.floor_number) return;
-
-    // const checkData = async () => {
-    //     try {
-    //     const response = await fetch(
-    //         `/dashboard/floor/cek-floor?building_id=${encodeURIComponent(
-    //         form.building_id
-    //         )}&floor_number=${encodeURIComponent(form.floor_number)}`
-    //     );
-    //     const data = await response.json();
-    //     setExists(data.exists);
-    //     } catch (err) {
-    //     console.error("Gagal mengecek data:", err);
-    //     setExists(false);
-    //     }
-    // };
-    // checkData();
-    // }, [form, isChanged]);
+ const gedungOption = useMemo(()=>{
+    return buildings.map((item)=>({
+        label:`${item.name} - ${item.code}`,
+        value:item.id
+    }))
+ },[buildings]);
 
 function cancelModal(){
     setExists(null);
@@ -299,11 +259,11 @@ function cancelModal(){
                   required
                 >
                   <option value={0}>-- Pilih Gedung --</option>
-                  {buildings.map(b => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
+                  {gedungOption.map((item)=>
+                    <option key={item.value} value={item.value}>
+                        {item.label}
                     </option>
-                  ))}
+                  )}
                 </select>
               </div>
 
