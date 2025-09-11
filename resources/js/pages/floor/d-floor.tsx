@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect} from 'react';
+import { useState, useMemo, useEffect, useCallback} from 'react';
 import { usePage, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 
@@ -176,39 +176,47 @@ useEffect(() => {
     }, [originalBuildingId,originalFloorNumber, form,selectedFloor]);
 
 // kondisi disabled (contoh mirip building)
-const isDisabled: boolean =
-  !!loading ||
-  !!exists ||
-  (!!selectedFloor?.id && !isFieldChanged);
+// state disable button
+const isDisabled =
+  loading ||         // tombol disable saat loading
+  !!exists ||        // paksa exists jadi boolean, null → false
+  (selectedFloor?.id !== undefined && !isFieldChanged);
 
-// fungsi cek duplikat floor
-useEffect(() => {
-  if (!isFieldChanged) {
+const checkData = useCallback(async () => {
+  // edit tapi tidak ada perubahan → skip fetch
+  if (selectedFloor && !isFieldChanged) {
     setExists(false);
     return;
   }
 
-  if (!form.building_id || !form.floor_number) return;
+  // kalau field kosong → reset exists dan skip
+  if (!form.building_id || !form.floor_number) {
+    setExists(false);
+    return;
+  }
 
-  const checkData = async () => {
-    try {
-      const response = await fetch(
-        `/dashboard/floor/cek-floor?building_id=${encodeURIComponent(
-          form.building_id
-        )}&floor_number=${encodeURIComponent(form.floor_number)}`
-      );
+  try {
+    const response = await fetch(
+      `/dashboard/floor/cek-floor?building_id=${encodeURIComponent(
+        form.building_id
+      )}&floor_number=${encodeURIComponent(form.floor_number)}`
+    );
 
-      if (!response.ok) throw new Error("Gagal terhubung ke server");
-      const data = await response.json();
-      setExists(!!data.exists);
-    } catch (err) {
-      console.error("Gagal mengecek data:", err);
-      setExists(false);
-    }
-  };
+    if (!response.ok) throw new Error("Gagal terhubung ke server");
 
+    const data = await response.json();
+    setExists(!!data.exists); // paksa boolean
+  } catch (err) {
+    console.error("Gagal mengecek data:", err);
+    setExists(false);
+  }
+}, [form.building_id, form.floor_number, isFieldChanged, selectedFloor]);
+
+
+// otomatis cek ketika input berubah
+useEffect(() => {
   checkData();
-}, [form, isFieldChanged]);
+}, [checkData]);
 
  const gedungOption = useMemo(()=>{
     return buildings.map((item)=>({
@@ -272,19 +280,21 @@ function cancelModal(){
                 <input
                   type="number"
                   name="floor_number"
-                //   onBlur={checkData}
+                 onBlur={checkData}
                   value={form.floor_number || ''}
                   onChange={handleInputChange}
                   className="w-full p-2 border border-gray-300 rounded"
                   min={1}
                   required
                 />
-            {isFieldChanged && exists === true && (
-            <p className="text-red-600 mt-1">Data sudah ada.</p>
-            )}
-
-            {isFieldChanged && exists === false && (
-            <p className="text-green-600 mt-1">Data tersedia.</p>
+           {exists !== null && (
+            <p
+                className={`mt-1 ${
+                exists ? 'text-red-600' : 'text-green-600'
+                }`}
+            >
+                {exists ? 'Data sudah ada.' : 'Data tersedia.'}
+            </p>
             )}
 
               </div>

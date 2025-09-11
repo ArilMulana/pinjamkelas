@@ -3,7 +3,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import React, { useCallback, useEffect, useMemo, useState} from "react";
 import { Jadwal, JadwalRuangan } from "../../hooks/jadwal/use-jadwalruangan";
 import DataTable from "@/hooks/datatables/use-datatables";
-import { Ruangan, useDetailLantai } from "@/hooks/lantai/use-lantai";
+import { useDetailLantai } from "@/hooks/lantai/use-lantai";
 import { useMatkul } from "@/hooks/matakuliah/use-matakuliah";
 import { useFakultas } from "@/hooks/fakultas/use-fakultas";
 import { router } from "@inertiajs/react";
@@ -19,6 +19,7 @@ export function JadwalMatkul() {
      const {prodi}= useFakultas();
     //  console.log("prodi", prodi);
     //console.log("matakuliah prodi",matprodi);
+    const [loading,setLoading] = useState(false);
     const [formDataJadwal, setFormDataJadwal] = useState({
        rooms_id: 0,
         matakuliah_id: 0,
@@ -26,11 +27,14 @@ export function JadwalMatkul() {
         jam_mulai: "",
         jam_selesai: "",
     });
-
-     //console.log("matprodi", matprodi);
-     //const [IdFloor,setIdFloor] = useState<number | null>(null);
      const [selectedIdJadwal,setSelectedIdJadwal] = useState<number | null>(null);
      //const matchProdi = jadwalRuangan.filter((p)=>p.id===selectedIdJadwal);
+    const [selectedFloorId, setSelectedFloorId] = useState<number | "">("");
+
+        const filteredRooms = useMemo(() => {
+    if (!selectedFloorId) return [];
+    return rooms.filter(room => room.floor_id === selectedFloorId);
+    }, [rooms, selectedFloorId]);
 
     const editJadwal = useCallback((id: number) => {
     const jadwal = jadwalRuangan.find(j => j.id === id);
@@ -43,16 +47,33 @@ export function JadwalMatkul() {
         jam_mulai: jadwal.jam_mulai,
         jam_selesai: jadwal.jam_selesai,
     });
-    //console.log(jadwal);
-
     setSelectedFloorId(jadwal.rooms.floor.id);
-
-  // Set filteredRooms sesuai floor yang dipilih agar dropdown Ruangan sesuai
-    setFilteredRooms(rooms.filter(room => room.floor_id === jadwal.rooms.floor.id));
-
     setModalOpen(true);
     setSelectedIdJadwal(id);
-    }, [jadwalRuangan,rooms]);
+    }, [jadwalRuangan]);
+
+   const deleteJadwal = useCallback((id: number) => {
+        Swal.fire({
+            title: 'Konfirmasi Hapus',
+            text: 'Apakah Anda yakin ingin menghapus Jadwal ini?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Hapus',
+            cancelButtonText: 'Batal',
+        }).then((result) => {
+            if (result.isConfirmed) {
+            router.delete(route('jadwal.destroy', id), {
+                onSuccess: () => {
+                Swal.fire('Sukses', 'Jadwal berhasil dihapus', 'success');
+                },
+                onError: () => {
+                Swal.fire('Gagal', 'Terjadi kesalahan saat menghapus Jadwal', 'error');
+                }
+            });
+            }
+        });
+        }, []);
+
 
     const data = useMemo<Jadwal[]>(() => {
     return jadwalRuangan.map((item) => ({
@@ -81,7 +102,7 @@ export function JadwalMatkul() {
         </div>
         ),
     }));
-    }, [jadwalRuangan,editJadwal]);
+    }, [jadwalRuangan,editJadwal,deleteJadwal]);
 
 const columns:ColumnDef<Jadwal>[] = [
 
@@ -136,29 +157,25 @@ function tambahModal(){
 
   setSelectedIdJadwal(null); // <– Mode tambah
   setSelectedFloorId("");    // <– Reset dropdown floor
-  setFilteredRooms([]);      // <– Kosongkan ruangan dulu
   setModalOpen(true);
 
 }
-   const [selectedFloorId, setSelectedFloorId] = useState<number | "">("");
-   const [filteredRooms, setFilteredRooms] = useState<Ruangan[]>([]);
    const handleFloorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const floorId = Number(e.target.value);
+const floorId = Number(e.target.value);
   setSelectedFloorId(floorId);
-  // Filter ruangan sesuai lantai yang dipilih
-  setFilteredRooms(rooms.filter(room => room.floor_id === floorId));
-  // Reset rooms_id di form agar Ruangan dropdown ikut reset
   setFormDataJadwal(prev => ({ ...prev, rooms_id: 0 }));
   };
 
 function tambahJadwal(e:React.FormEvent) {
     // Function to handle adding new schedule
     e.preventDefault();
+    setLoading(true);
     if(!selectedIdJadwal){
     router.post(route('jadwal-matkul.store'), formDataJadwal, {
             onSuccess: () => {
-                console.log("Jadwal berhasil ditambahkan");
+                //console.log("Jadwal berhasil ditambahkan");
                 setModalOpen(false);
+                setLoading(false);
                 setFormDataJadwal({
                     rooms_id: 0,
                     matakuliah_id: 0,
@@ -190,6 +207,7 @@ function tambahJadwal(e:React.FormEvent) {
                     jam_mulai: "",
                     jam_selesai: "",
                 });
+                  setLoading(false);
                 Swal.fire('Sukses', 'Jadwal berhasil di update', 'success');
             },
             onError: (error) => {
@@ -198,6 +216,7 @@ function tambahJadwal(e:React.FormEvent) {
                     title: 'Gagal',
                     text: 'Jadwal gagal diupdate. Silakan coba lagi.',
                 });
+                  setLoading(false);
                 console.error("Error adding schedule:", error);
                 // Handle error, e.g., show an error message
             },
@@ -287,28 +306,57 @@ useEffect(() => {
     setSelectedIdJadwal(null); // Reset selected ID when modal is closed
   }
 
-function deleteJadwal(id: number) {
-    Swal.fire({
-        title: 'Konfirmasi Hapus',
-        text: 'Apakah Anda yakin ingin menghapus Jadwal ini?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Hapus',
-        cancelButtonText: 'Batal',
-    }).then((result) => {
-        if (result.isConfirmed) {
-            router.delete(route('jadwal.destroy', id), {
-                onSuccess: () => {
-                    Swal.fire('Sukses', 'Jadwal berhasil dihapus', 'success');
-                },
-                onError: () => {
-                    Swal.fire('Gagal', 'Terjadi kesalahan saat menghapus Jadwal', 'error');
+const groupedFloors = useMemo(() => {
+  return buildings.map((building) => {
+    const floorsInBuilding = floors.filter(
+      (floor) => floor.building_id === building.id
+    );
 
-                }
-            });
-        }
-    });
-}
+    if (floorsInBuilding.length === 0) return null;
+
+    return (
+      <optgroup key={building.id} label={building.name}>
+        {floorsInBuilding.map((floor) => (
+          <option key={floor.id} value={floor.id}>
+            {floor.building.name} - Lantai {floor.floor_number}
+          </option>
+        ))}
+      </optgroup>
+    );
+  });
+}, [buildings, floors]);
+
+const groupProdi = useMemo(()=>{
+    return prodi.map((prodi) => {
+                const matkulInprodi = matprodi.filter(
+                (item) => item.programstudi.id === prodi.id
+                );
+                if (matkulInprodi.length === 0) return null;
+                return (
+                <optgroup key={prodi.id} label={prodi.nama_program_studi}>
+                    {matkulInprodi.map((matkul) => (
+                    <option key={matkul.id} value={matkul.id}>
+                     {matkul.matakuliah.nama_matakuliah} - {matkul.matakuliah.sks} SKS
+                    </option>
+                    ))}
+                </optgroup>
+                );
+            })
+},[prodi,matprodi]);
+
+// helper function untuk teks tombol
+const getButtonText = () => {
+  if (loading) return "Loading...";
+  if (!jadwalTersedia) return "Pilih Jadwal";
+  return "Jadwal Tersedia";
+};
+
+// helper function untuk disabled state
+const isButtonDisabled = () => {
+  if (loading) return true;          // tombol disable saat loading
+  if (!jadwalTersedia) return true;  // tombol disable kalau belum pilih jadwal
+  return false;
+};
   return (
 
     <div className="overflow-x-auto text-black bg-white p-6 rounded-lg shadow-md">
@@ -337,29 +385,12 @@ function deleteJadwal(id: number) {
         <label className="block text-sm font-medium text-gray-700 mb-1">Lokasi (Gedung & Lantai)</label>
         <select
          onChange={handleFloorChange}
-         value={selectedFloorId}
-
+        value={selectedFloorId}
         className="border border-gray-300 rounded-md px-3 py-2 w-full">
               <option value="" disabled selected>
                 Pilih Gedung dan Lantai
             </option>
-              {buildings.map((building) => {
-                const floorsInBuilding = floors.filter(
-                (floor) => floor.building_id === building.id
-                );
-                if (floorsInBuilding.length === 0) return null;
-                return (
-                <optgroup key={building.id} label={building.name}>
-
-                    {floorsInBuilding.map((floor) => (
-                    <option key={floor.id} value={floor.id}>
-                       {floor.building.name} -
-                       Lantai {floor.floor_number}
-                    </option>
-                    ))}
-                </optgroup>
-                );
-            })}
+             {groupedFloors}
         </select>
       </div>
 
@@ -467,47 +498,33 @@ function deleteJadwal(id: number) {
                <option value="" disabled>
                 Pilih Matakuliah
             </option>
-        {prodi.map((prodi) => {
-                const matkulInprodi = matprodi.filter(
-                (item) => item.programstudi.id === prodi.id
-                );
-                if (matkulInprodi.length === 0) return null;
-                return (
-                <optgroup key={prodi.id} label={prodi.nama_program_studi}>
-                    {matkulInprodi.map((matkul) => (
-                    <option key={matkul.id} value={matkul.id}>
-                     {matkul.matakuliah.nama_matakuliah} - {matkul.matakuliah.sks} SKS
-                    </option>
-                    ))}
-                </optgroup>
-                );
-            })}
+            {groupProdi}
         </select>
       </div>
     </form>
 
     {/* BUTTONS */}
-    <div className="mt-6 flex justify-end gap-3">
-      <button
-        onClick ={cancelModal}
-        className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400 transition-colors duration-200"
-      >
-        Batal
-      </button>
-     <button
-        onClick={tambahJadwal}
-        disabled={!jadwalTersedia}
-        className={`px-4 py-2 rounded text-white transition-colors duration-200
-            ${!jadwalTersedia
-            ? 'bg-gray-400 cursor-not-allowed'
-            : 'bg-blue-500 hover:bg-blue-600 cursor-pointer'
-            }`}
+        <div className="mt-6 flex justify-end gap-3">
+        <button
+            onClick ={cancelModal}
+            className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400 transition-colors duration-200"
         >
-        Simpan
+            Batal
         </button>
+        <button
+            onClick={tambahJadwal}
+            disabled={isButtonDisabled()}
+            className={`px-4 py-2 rounded text-white transition-colors duration-200
+                ${isButtonDisabled()
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-blue-500 hover:bg-blue-600 cursor-pointer'
+                }`}
+            >
+            {getButtonText()}
+            </button>
+        </div>
     </div>
-  </div>
-</div>
+    </div>
 
     )}
     </div>
