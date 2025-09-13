@@ -9,3 +9,4 @@ setelah registrasi edit user dengan masuk lewat terminal dengan fungsi
 SET role_id = 1
 WHERE username = 'nama_yang_diregistrasi_tadi';
 5. setelah itu baru login
+6. jika tidak ada data role, tambahkan untuk role 1 admin
