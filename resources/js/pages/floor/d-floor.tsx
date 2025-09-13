@@ -15,6 +15,7 @@ export function DFloor() {
   const [selectedBuildingId, setSelectedBuildingId] = useState<number | null>(null);
   const [loading,setLoading] = useState(false);
    const [exists, setExists] = useState<boolean | null>(null);
+   //console.log(buildings);
   //edit
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId,setEditId] = useState<number | null>(null);
@@ -35,14 +36,13 @@ export function DFloor() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     if (!form.building_id || !form.floor_number) {
       Swal.fire('Gagal', 'Semua field harus diisi.', 'error');
       return;
     }
-
     if(isEditMode && editId != null){
         router.put(route('floor.update',editId),form,{
             onSuccess: (page)=>{
@@ -74,9 +74,9 @@ export function DFloor() {
         },
         });
     }
-  };
+  },[editId,form,isEditMode]);
 
-   function handleDelete(id: number) {
+   const handleDelete = useCallback((id: number)=> {
       Swal.fire({
         title: 'Yakin ingin menghapus?',
         text: 'Data yang dihapus tidak bisa dikembalikan!',
@@ -98,9 +98,9 @@ export function DFloor() {
           });
         }
       });
-    }
+    },[]);
 
-    const handleEdit= (floor:FloorData)=>{
+    const handleEdit= useCallback((floor:FloorData)=>{
         setForm({
             building_id:floor.building.id,
             floor_number:floor.floor_number
@@ -109,7 +109,7 @@ export function DFloor() {
         setEditId(floor.id);
         setIsEditMode(true);
         setModalOpen(true);
-    }
+    },[]);
 
 const handleAddNewItem = () => {
     setEditId(null); // Pastikan ID di-reset
@@ -133,10 +133,11 @@ const handleAddNewItem = () => {
         const totalPages = Math.ceil(filteredBuilding.length / itemsPerPage);
         const [currentPage, setCurrentPage] = useState(1);
 
-        const paginatedGedungs = filteredBuilding.slice(
+        const paginatedGedungs = useMemo(()=>{
+            return filteredBuilding.slice(
             (currentPage - 1) * itemsPerPage,
             currentPage * itemsPerPage
-        );
+            )},[currentPage,filteredBuilding]);
 
         // Pagination handlers
         const handlePrev = () => setCurrentPage((p) => Math.max(p - 1, 1));
@@ -152,19 +153,19 @@ const handleAddNewItem = () => {
     const [selectedFloor, setSelectedFloor] = useState<FloorData | null>(null);
 
     // state untuk menyimpan data lama (original)
-const [originalBuildingId, setOriginalBuildingId] = useState("");
-const [originalFloorNumber, setOriginalFloorNumber] = useState("");
+    const [originalBuildingId, setOriginalBuildingId] = useState("");
+    const [originalFloorNumber, setOriginalFloorNumber] = useState("");
 
-// isi state ketika selectedFloor berubah
-useEffect(() => {
-  if (selectedFloor) {
-    setOriginalBuildingId(String(selectedFloor.building.id));
-    setOriginalFloorNumber(String(selectedFloor.floor_number));
-  } else {
-    setOriginalBuildingId("");
-    setOriginalFloorNumber("");
-  }
-}, [selectedFloor]);
+    // isi state ketika selectedFloor berubah
+    useEffect(() => {
+    if (selectedFloor) {
+        setOriginalBuildingId(String(selectedFloor.building.id));
+        setOriginalFloorNumber(String(selectedFloor.floor_number));
+    } else {
+        setOriginalBuildingId("");
+        setOriginalFloorNumber("");
+    }
+    }, [selectedFloor]);
 
 // cek apakah ada perubahan data
    const isFieldChanged = useMemo(() => {
@@ -175,7 +176,6 @@ useEffect(() => {
     );
     }, [originalBuildingId,originalFloorNumber, form,selectedFloor]);
 
-// kondisi disabled (contoh mirip building)
 // state disable button
 const isDisabled =
   loading ||         // tombol disable saat loading
@@ -194,7 +194,6 @@ const checkData = useCallback(async () => {
     setExists(false);
     return;
   }
-
   try {
     const response = await fetch(
       `/dashboard/floor/cek-floor?building_id=${encodeURIComponent(

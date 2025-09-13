@@ -16,68 +16,72 @@ import { Link, usePage } from '@inertiajs/react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
+//   {
+//     title: 'Dashboard',
+//     href: route('dashboard'), // Pastikan ini path relatif atau full URL sesuai kebutuhan
+//     routeName: 'dashboard',
+//     // icon: LayoutGrid,
+//   },
   {
-    title: 'Dashboard',
-    href: route('dashboard'), // Pastikan ini path relatif atau full URL sesuai kebutuhan
-    routeName: 'dashboard',
-    // icon: LayoutGrid,
+    title:'Penitipan Hewan',
+    href:route('nitip'),
+    routeName:['nitip']
   },
+//   {
+//     title: 'User',
+//     href: route('user'),
+//     routeName: ['user'],
+//   },
+//   {
+//     title: 'Infrastruktur',
+//     href: '#',
+//     routeName: ['building', 'floor', 'room'],
+//     subItems: [
+//       {
+//         title: 'Gedung',
+//         href: '/dashboard/building',
+//         routeName: ['building', 'create-building'],
+//       },
+//       {
+//         title: 'Lantai',
+//         href: '/dashboard/floor', // Ganti route('floor') jadi path string langsung
+//         routeName: ['floor', 'create-floor'],
+//       },
+//       {
+//         title: 'Ruangan',
+//         href: '/dashboard/room', // Ganti route('room') jadi path string langsung
+//         routeName: ['room', 'create-room'],
+//       },
+//     ],
+//   },
+//   {
+//       title: 'Fakultas',
+//         href: route('fakultas'),  // Perbaiki href yang sebelumnya kosong
+//         routeName: 'fakultas',
+//   },
+//   {
+//     title: 'Akademik',
+//     href: '#',
+//     routeName: [ 'Matakuliah', 'Matakuliah Prodi'],
+//     subItems: [
+//       {
+//         title: 'Matakuliah',
+//         href: '/dashboard/matkul',
+//         routeName: 'matkul',
+//       },
 
-  {
-    title: 'User',
-    href: route('user'),
-    routeName: ['user'],
-  },
-  {
-    title: 'Infrastruktur',
-    href: '#',
-    routeName: ['building', 'floor', 'room'],
-    subItems: [
-      {
-        title: 'Gedung',
-        href: '/dashboard/building',
-        routeName: ['building', 'create-building'],
-      },
-      {
-        title: 'Lantai',
-        href: '/dashboard/floor', // Ganti route('floor') jadi path string langsung
-        routeName: ['floor', 'create-floor'],
-      },
-      {
-        title: 'Ruangan',
-        href: '/dashboard/room', // Ganti route('room') jadi path string langsung
-        routeName: ['room', 'create-room'],
-      },
-    ],
-  },
-  {
-      title: 'Fakultas',
-        href: route('fakultas'),  // Perbaiki href yang sebelumnya kosong
-        routeName: 'fakultas',
-  },
-  {
-    title: 'Akademik',
-    href: '#',
-    routeName: [ 'Matakuliah', 'Matakuliah Prodi'],
-    subItems: [
-      {
-        title: 'Matakuliah',
-        href: '/dashboard/matkul',
-        routeName: 'matkul',
-      },
-
-      {
-        title:'Matakuliah Per Program Studi',
-        href:'/dashboard/matkul/prodi',
-        routeName:'Matakuliah Prodi'
-      },
-      {
-        title:'Jadwal Matakuliah',
-        href:'/dashboard/matkul/jadwal',
-        routeName:'jadwal-matkul'
-      }
-    ],
-  },
+//       {
+//         title:'Matakuliah Per Program Studi',
+//         href:'/dashboard/matkul/prodi',
+//         routeName:'Matakuliah Prodi'
+//       },
+//       {
+//         title:'Jadwal Matakuliah',
+//         href:'/dashboard/matkul/jadwal',
+//         routeName:'jadwal-matkul'
+//       }
+//     ],
+//   },
 
 ];
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { usePage, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 
@@ -44,7 +44,7 @@ export function DRoom() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-
+  const [loading,setLoading] = useState(false);
   useEffect(() => setData(rooms), [rooms]);
 
   // Filtering Buildings based on search term
@@ -68,10 +68,10 @@ export function DRoom() {
     },[filteredBuilding,itemsPerPage,currentPage]);
 
   // Building toggle handler
-  const toggleBuilding = (id: number) => {
+  const toggleBuilding = useCallback((id: number) => {
     setExpandedBuildingId(expandedBuildingId === id ? null : id);
     setSelectedFloorId(null);
-  };
+  },[expandedBuildingId]);
 
   const handlePrev = () => setCurrentPage((p) => Math.max(p - 1, 1));
   const handleNext = () => setCurrentPage((p) => Math.min(p + 1, totalPages));
@@ -89,7 +89,7 @@ export function DRoom() {
 }, [selectedBuildingId, buildings]);
 
   // Handle adding a new item
-  const handleAddNewItem = () => {
+  const handleAddNewItem = useCallback(()=> {
     setEditId(null);
     setSelectedFloorId(null);
     setRoomName('');
@@ -97,10 +97,10 @@ export function DRoom() {
     setIsEditMode(false);
     setModalOpen(true);
     setSelectedBuildingId(null);
-  };
+  },[]);
 
   // Handle editing an existing room
-  const handleEdit = (roomId: number) => {
+  const handleEdit = useCallback((roomId: number) => {
     const room = rooms.find(r => r.id === roomId);
     if (!room) return console.warn('Room not found');
 
@@ -111,12 +111,12 @@ export function DRoom() {
     setIsEditMode(true);
     setModalOpen(true);
     setSelectedBuildingId(room.floor?.building_id ?? null);
-  };
+  },[rooms]);
 
   // Handle form submission for both add and edit
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-
+    setLoading(true);
     if (!selectedFloorId || !roomName.trim() || !totalCapacity) {
       return alert('Mohon isi semua field');
     }
@@ -129,6 +129,7 @@ export function DRoom() {
           const updatedRooms = (page.props as unknown as { rooms: RoomData[] }).rooms;
           setData(updatedRooms);
           resetFormState();
+          setLoading(false);
           Swal.fire('Sukses', 'Ruangan berhasil diperbarui', 'success');
         },
         onError: () => Swal.fire('Gagal', 'Terjadi kesalahan saat mengedit', 'error')
@@ -140,14 +141,15 @@ export function DRoom() {
         capacity: totalCapacity }, {
         onSuccess: () => {
           resetFormState();
+           setLoading(false);
           Swal.fire('Sukses', 'Ruangan berhasil ditambahkan', 'success');
         },
         onError: () => Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan', 'error')
       });
     }
-  };
+  },[editId,form,roomName,selectedFloorId,totalCapacity]);
 
-  function handleDelete(id:number){
+  const handleDelete = useCallback((id:number)=>{
       Swal.fire({
             title: 'Yakin ingin menghapus?',
             text: 'Data yang dihapus tidak bisa dikembalikan!',
@@ -169,7 +171,7 @@ export function DRoom() {
               });
             }
           });
-  }
+  },[]);
   const resetFormState = () => {
     setModalOpen(false);
     setRoomName('');
@@ -185,6 +187,17 @@ export function DRoom() {
   const selectedFloorRooms = useMemo(()=>{
     return data.filter(room => room.floor_id === selectedFloorId)},[data,selectedFloorId]);
 
+    // helper function untuk teks tombol
+const getButtonText = () => {
+  if (loading) return "Loading...";
+  return "Ruangan Tersedia";
+};
+
+// helper function untuk disabled state
+const isButtonDisabled = () => {
+  if (loading) return true;          // tombol disable saat loading
+  return false;
+    };
   return (
 
 
@@ -391,11 +404,16 @@ export function DRoom() {
                   Batal
                 </button>
                 <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  Simpan
-                </button>
+            type="submit"
+            disabled={isButtonDisabled()}
+            className={`px-4 py-2 rounded text-white transition-colors duration-200
+                ${isButtonDisabled()
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-blue-500 hover:bg-blue-600 cursor-pointer'
+                }`}
+            >
+            {getButtonText()}
+            </button>
               </div>
             </form>
           </div>

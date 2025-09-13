@@ -1,5 +1,5 @@
 import { usePage, router } from '@inertiajs/react';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import Swal from 'sweetalert2';
 
 interface Gedung {
@@ -23,6 +23,7 @@ export function Main() {
   const itemsPerPage = 5;
 
   // Isi form saat modal dibuka (edit)
+
   useEffect(() => {
     if (selectedGedung) {
       setFormData({
@@ -60,7 +61,7 @@ export function Main() {
   const handlePageClick = (page: number) => setCurrentPage(page);
 
   // Delete dengan konfirmasi SweetAlert
-  function handleDelete(id: number) {
+  const handleDelete = useCallback((id: number)=> {
     Swal.fire({
       title: 'Yakin ingin menghapus?',
       text: 'Data yang dihapus tidak bisa dikembalikan!',
@@ -78,16 +79,16 @@ export function Main() {
         });
       }
     });
-  }
+  },[]);
 
   function cancelModal(){
     setShowModal(false);
     setExists(null);
   }
-  function openEditModal(gedung: Gedung) {
+  const openEditModal= useCallback((gedung: Gedung)=> {
     setSelectedGedung(gedung);
     setShowModal(true);
-  }
+  },[]);
 
    const [originalKode, setOriginalKode] = useState('');
       const [originalData, setOriginalData] = useState({
@@ -95,6 +96,7 @@ export function Main() {
       lokasi:'',
       code:''
        });
+
     useEffect(() => {
     if (selectedGedung) {
         setOriginalKode(selectedGedung.code || '');
@@ -120,7 +122,7 @@ export function Main() {
         !!exists ||
         (!!selectedGedung?.code && isCodeSame && !isFieldChanged);
 
-    const checkData = async () => {
+    const checkData = useCallback(async () => {
     const kode = formData.code;
     //console.log(kode);
      if (selectedGedung && selectedGedung.code === kode) {
@@ -137,7 +139,7 @@ export function Main() {
         setExists(false);
 
     }
-    };
+    },[selectedGedung,formData.code]);
 
     function tambahGedung(){
         setShowModal(true);
@@ -148,8 +150,9 @@ export function Main() {
             lokasi:''
         })
     }
-  // Submit form update gedung via PUT
-  function handleModalSubmit(e: React.FormEvent) {
+  // Submit form update gedung via
+
+  const handleModalSubmit = useCallback((e: React.FormEvent)=> {
     e.preventDefault();
     setLoading(true);
     if (selectedGedung) {
@@ -198,18 +201,31 @@ export function Main() {
             },
         });
         }
-  }
+  },[formData,selectedGedung]);
+
+const isButtonDisabled = () => {
+  if (isLoading) return true;          // tombol disable saat loading
+  if (exists) return true;  // tombol disable kalau belum pilih jadwal
+  return false;
+ };
+
+ const getButtonText = () => {
+  if (isLoading) return "Menyimpan...";
+  if (exists) return "Kode Duplikat";
+  return "Simpan";
+};
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md text-black">
       {/* Header + Add Button */}
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-gray-900">Daftar Gedung</h1>
+
         <button
         onClick={tambahGedung}
-        className="inline-block px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded hover:bg-indigo-700 transition"
+        className="cursor-pointer inline-block px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded hover:bg-indigo-700 transition"
         >
-        Tambah Gedung
+        <span className='fa fa-add'></span>Tambah Gedung
         </button>
       </div>
 
@@ -380,12 +396,13 @@ export function Main() {
           </button>
           <button
                 type="submit"
-                disabled={isDisabled}
+                disabled={isButtonDisabled()}
                 className={`px-4 py-2 text-white rounded ${
-                    isDisabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
+                    isButtonDisabled() ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
                 }`}
                 >
-                {isLoading ? 'Menyimpan...' : exists === true ? 'Kode Duplikat' : 'Simpan'}
+                {/* {isLoading ? 'Menyimpan...' : exists === true ? 'Kode Duplikat' : 'Simpan'} */}
+                {getButtonText()}
             </button>
         </div>
       </form>

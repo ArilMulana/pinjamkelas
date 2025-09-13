@@ -6,6 +6,7 @@ use App\Http\Controllers\FloorController;
 use App\Http\Controllers\JadwalRuanganController;
 use App\Http\Controllers\MataKuliahController;
 use App\Http\Controllers\MatakuliahProgramStudiController;
+use App\Http\Controllers\NitipHewanController;
 use App\Http\Controllers\ProgramStudiController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\UserController;
@@ -24,9 +25,9 @@ Route::middleware(['auth', 'verified','role:1'])->group(function () {
 
     //building
     Route::post('dashboard/building/create/process',[BuildingController::class,'store'])->name('building.store');
-    Route::get('dashboard/building/create',function(){
-        return Inertia::render('building/create-gedung');
-    })->name('create-building');
+    // Route::get('dashboard/building/create',function(){
+    //     return Inertia::render('building/create-gedung');
+    // })->name('create-building');
     Route::get('/dashboard/building', [BuildingController::class, 'index'])->name('building');
     Route::delete('/dashboard/building/{id}', [BuildingController::class, 'destroy'])->name('building.destroy');
     Route::get('/dashboard/building/{building}/edit', [BuildingController::class, 'edit'])->name('building.edit');
@@ -72,7 +73,7 @@ Route::middleware(['auth', 'verified','role:1'])->group(function () {
     Route::get('/dashboard/matkul/prodi',[MatakuliahProgramStudiController::class,'index'])->name('matkul-prodi');
     Route::post('/dashboard/matkul/prodi/create/process',[MatakuliahProgramStudiController::class,'store'])->name('matkul-prodi.store');
     Route::put('/dashboard/matkul/prodi/{matakuliahProgramStudi}',[MatakuliahProgramStudiController::class,'update'])->name('matkul-prodi.update');
-    Route::delete('/dashboard/matkul/prodi/{id}',[MatakuliahProgramStudiController::class,'destroy'])->name('matkul-prodi.destroy');
+    Route::delete('/dashboard/matkul/prodi/{id}',action: [MatakuliahProgramStudiController::class,'destroy'])->name('matkul-prodi.destroy');
 
     //Jadwal Matakuliah
     Route::get('/dashboard/matkul/jadwal',[JadwalRuanganController::class,'index'])->name('jadwal-matkul');
@@ -85,6 +86,21 @@ Route::middleware(['auth', 'verified','role:1'])->group(function () {
     Route::get('/dashboard/user',[UserController::class,'index'])->name('user');
     Route::put('/dashboard/user/{id}',[UserController::class,'update'])->name('user.update');
     Route::delete('/dashboard/user/{id}',[UserController::class,'destroy'])->name('user.destroy');
+
+    //Nitip Hewan
+    Route::get('/dashboard/nitip',[NitipHewanController::class,'index'])->name('nitip');
+
+    // Menyimpan data baru
+    Route::post('/dashboard/nitip', [NitipHewanController::class, 'store'])->name('nitip.store');
+
+    // Menampilkan form edit (opsional, kalau pakai modal bisa di-handle React)
+    Route::get('/dashboard/nitip/{nitipHewan}/edit', [NitipHewanController::class, 'edit'])->name('nitip.edit');
+
+    // Update data
+    Route::put('/dashboard/nitip/{nitipHewan}', [NitipHewanController::class, 'update'])->name('nitip.update');
+
+    // Hapus data
+    Route::delete('/dashboard/nitip/{nitipHewan}', [NitipHewanController::class, 'destroy'])->name('nitip.destroy');
 });
 
 

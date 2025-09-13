@@ -31,7 +31,7 @@ export function JadwalMatkul() {
      //const matchProdi = jadwalRuangan.filter((p)=>p.id===selectedIdJadwal);
     const [selectedFloorId, setSelectedFloorId] = useState<number | "">("");
 
-        const filteredRooms = useMemo(() => {
+    const filteredRooms = useMemo(() => {
     if (!selectedFloorId) return [];
     return rooms.filter(room => room.floor_id === selectedFloorId);
     }, [rooms, selectedFloorId]);
@@ -160,76 +160,64 @@ function tambahModal(){
   setModalOpen(true);
 
 }
-   const handleFloorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-const floorId = Number(e.target.value);
+   const handleFloorChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+  const floorId = Number(e.target.value);
   setSelectedFloorId(floorId);
   setFormDataJadwal(prev => ({ ...prev, rooms_id: 0 }));
-  };
+  },[]);
 
-function tambahJadwal(e:React.FormEvent) {
-    // Function to handle adding new schedule
+  const resetForm = () => {
+    setModalOpen(false);
+    setLoading(false);
+    setFormDataJadwal({
+        rooms_id: 0,
+        matakuliah_id: 0,
+        hari: "",
+        jam_mulai: "",
+        jam_selesai: "",
+    });
+};
+
+const tambahJadwal = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    if(!selectedIdJadwal){
-    router.post(route('jadwal-matkul.store'), formDataJadwal, {
-            onSuccess: () => {
-                //console.log("Jadwal berhasil ditambahkan");
-                setModalOpen(false);
-                setLoading(false);
-                setFormDataJadwal({
-                    rooms_id: 0,
-                    matakuliah_id: 0,
-                    hari: "",
-                    jam_mulai: "",
-                    jam_selesai: "",
-                });
-                Swal.fire('Sukses', 'Jadwal berhasil ditambahkan', 'success');
-                // Optionally, refresh the data or show a success message
-            },
-            onError: (error) => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal',
-                    text: 'Jadwal gagal ditambahkan. Silakan coba lagi.',
-                });
-                console.error("Error adding schedule:", error);
-                // Handle error, e.g., show an error message
-            },
+
+    const onSuccess = (message: string) => {
+        resetForm();
+        Swal.fire('Sukses', message, 'success');
+    };
+
+    const onError = (defaultMessage: string, error?: unknown) => {
+        setLoading(false);
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: defaultMessage,
         });
-    }else{
-          router.put(route('jadwal.update',selectedIdJadwal), formDataJadwal, {
-            onSuccess: () => {
-                setModalOpen(false);
-                setFormDataJadwal({
-                    rooms_id: 0,
-                    matakuliah_id: 0,
-                    hari: "",
-                    jam_mulai: "",
-                    jam_selesai: "",
-                });
-                  setLoading(false);
-                Swal.fire('Sukses', 'Jadwal berhasil di update', 'success');
-            },
-            onError: (error) => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal',
-                    text: 'Jadwal gagal diupdate. Silakan coba lagi.',
-                });
-                  setLoading(false);
-                console.error("Error adding schedule:", error);
-                // Handle error, e.g., show an error message
-            },
+        console.error("Error schedule:", error);
+    };
+
+    if (!selectedIdJadwal) {
+        router.post(route('jadwal-matkul.store'), formDataJadwal, {
+            onSuccess: () => onSuccess('Jadwal berhasil ditambahkan'),
+            onError: (error) => onError('Jadwal gagal ditambahkan. Silakan coba lagi.', error),
+        });
+    } else {
+        router.put(route('jadwal.update', selectedIdJadwal), formDataJadwal, {
+            onSuccess: () => onSuccess('Jadwal berhasil di update'),
+            onError: (error) => onError('Jadwal gagal diupdate. Silakan coba lagi.', error),
         });
     }
 
-}
+}, [formDataJadwal, selectedIdJadwal]);
 
-useEffect(() => {
-  const selectedMataKuliah = matprodi.find(
+const selectedMataKuliah = useMemo(() => {
+  return matprodi.find(
     (mk) => mk.id === formDataJadwal.matakuliah_id
   );
+}, [matprodi, formDataJadwal.matakuliah_id]);
 
+useEffect(() => {
   if (selectedMataKuliah && formDataJadwal.jam_mulai) {
     const sks = selectedMataKuliah.matakuliah.sks;
     const tambahanMenit = sks * 45;
@@ -255,14 +243,14 @@ useEffect(() => {
       jam_selesai: jamSelesaiFormatted,
     }));
   }
-}, [formDataJadwal.matakuliah_id, formDataJadwal.jam_mulai, matprodi]);
+}, [formDataJadwal.matakuliah_id, formDataJadwal.jam_mulai, matprodi,selectedMataKuliah]);
 
   const [errorBentrok, setErrorBentrok] = useState("");
   const [jadwalTersedia, setJadwalTersedia] = useState("");
 
-  useEffect(() => {
-    const { rooms_id, hari, jam_mulai, jam_selesai } = formDataJadwal;
+  const { rooms_id, hari, jam_mulai, jam_selesai } = formDataJadwal;
 
+  const checkdata= useCallback(async() => {
     if (!rooms_id || !hari || !jam_mulai || !jam_selesai) {
       setErrorBentrok("");
       setJadwalTersedia("");
@@ -290,7 +278,11 @@ useEffect(() => {
         setJadwalTersedia("");
         //console.error(err);
       });
-  }, [formDataJadwal]);
+  }, [hari,jam_mulai,jam_selesai,rooms_id]);
+
+   useEffect(() => {
+    checkdata();
+    }, [checkdata]);
 
   function cancelModal(){
     setModalOpen(false);
@@ -424,6 +416,7 @@ const isButtonDisabled = () => {
             <select
             value={formDataJadwal.hari || ''}
             onChange={(e) => setFormDataJadwal({...formDataJadwal, hari: e.target.value})}
+               onBlur={checkdata}
             className="border border-gray-300 rounded-md px-3 py-2 w-full">
                 <option value="">Pilih Hari</option>
                 <option value="Senin">Senin</option>
@@ -463,6 +456,7 @@ const isButtonDisabled = () => {
                 minuteIncrement: 1,
             }}
             value={formDataJadwal.jam_selesai || ''}
+
             onChange={([time]) => {
                 const formattedTime = time.toTimeString().slice(0, 5);
                 setFormDataJadwal({ ...formDataJadwal, jam_selesai: formattedTime });

@@ -31,6 +31,15 @@ export default defineConfig({
       host: 'localhost', // supaya websocket HMR connect ke localhost:5173
       port: 5173,
     },
+// server: {
+//   host: '0.0.0.0',   // penting untuk expose ke host
+//   port: 5173,
+//   strictPort: true,
+//   hmr: {
+//     //host: 'localhost', // biar HMR connect ke host
+//      host: '127.0.0.1', aktifkan ketika mau docker
+//     port: 5173,
+//   },
   },
 });
 

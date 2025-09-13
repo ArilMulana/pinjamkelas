@@ -40,7 +40,7 @@ function TableUser(){
     const {users:initialUsers,roles} = usePage<{users:User[],roles:Role[]}>().props;
     //console.log(roles);
     const[idUser,setIdUser]= useState<number |null>(null);
-     const [users, setUserData] = useState<User[]>(initialUsers);
+    const [users, setUserData] = useState<User[]>(initialUsers);
 
      const [loading, setLoading] = useState(false);
       const [formUser, setFormUser] = useState({

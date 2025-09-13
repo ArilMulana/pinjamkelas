@@ -1,35 +1,50 @@
+# version: "3.8"
+
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: pinjamkelas_app
+    image: pinjamkelas-app
+    container_name: pinjamkelas-app
+    restart: unless-stopped
     ports:
-      - "8000:80"  # Akses Laravel via http://localhost:8000
+      - "8000:80" # laravel
+      - "5173:5173" #vite
     volumes:
-      - /mnt/c/laragon/www/pinjamkelas:/var/www/html
-    depends_on:
-      - db
+      # Mount source code untuk develop
+      - ./:/var/www/html
+      # Named volume untuk composer/vendor
+      - app_vendor:/var/www/html/vendor
+      # Named volume untuk node_modules (frontend)
+      - app_node_modules:/var/www/html/node_modules
+      # Named volume untuk storage
+      - app_storage:/var/www/html/storage
+    environment:
+        APACHE_DOCUMENT_ROOT: /var/www/html/public
     networks:
       - laravel
 
   db:
-    image: mysql:8.0
-    container_name: pinjamkelas_db
-    restart: always
+    image: mysql:8
+    container_name: pinjamkelas-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: pinjamkelas
     ports:
       - "3306:3306"
-    environment:
-      MYSQL_DATABASE: pinjamkelas
-      MYSQL_ROOT_PASSWORD: ""
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
     volumes:
-      - db_data:/var/lib/mysql
+      - dbdata:/var/lib/mysql
     networks:
       - laravel
 
 volumes:
-  db_data:
+  dbdata:
+  app_vendor:
+  app_node_modules:
+  app_storage:
 
 networks:
   laravel:
+    driver: bridge
