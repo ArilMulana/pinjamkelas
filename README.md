@@ -1,2 +1,2 @@
-# pinjamkelas
-Pinjam Kelas Berbasis Website yang di buat menggunakan framework laravel serta react 
+# penitipan hewan untuk test PJS
+file ini ada untuk nitip hewan test PJS
