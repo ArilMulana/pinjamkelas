@@ -14,6 +14,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  
   esbuild: {
     jsx: 'automatic',
   },
@@ -24,22 +25,25 @@ export default defineConfig({
     },
   },
   server: {
-    host: 'localhost',   // pastikan ini sesuai dengan url yang kamu akses
-    port: 5173,          // port default vite
-    strictPort: true,    // agar gagal kalau port 5173 dipakai
+    host: '0.0.0.0', // agar bisa diakses dari luar container
+    port: 5174,
+    strictPort: true,
+    origin: 'http://localhost:5174', // atau host.docker.internal jika pakai Docker Desktop
+    cors: true,
     hmr: {
-      host: 'localhost', // supaya websocket HMR connect ke localhost:5173
-      port: 5173,
+      host: 'localhost',    // harus sesuai domain tempat kamu akses di browser
     },
-// server: {
-//   host: '0.0.0.0',   // penting untuk expose ke host
-//   port: 5173,
-//   strictPort: true,
-//   hmr: {
-//     //host: 'localhost', // biar HMR connect ke host
-//      host: '127.0.0.1', aktifkan ketika mau docker
-//     port: 5173,
-//   },
+
+     proxy: {
+      // Proxy semua request ke /dashboard ke backend Laravel di port 8001
+      '/dashboard': {
+        target: 'http://localhost:8001',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+    
   },
 });
+
 

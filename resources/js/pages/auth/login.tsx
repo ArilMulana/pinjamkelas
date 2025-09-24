@@ -90,11 +90,16 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                         />
                         <Label htmlFor="remember">Remember me</Label>
                     </div>
-
-                    <Button type="submit" className="mt-4 w-full" tabIndex={4} disabled={processing}>
-                        {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                        Log in
+                    <Button
+                    type="submit"
+                    className="mt-4 w-full bg-indigo-600 text-white font-semibold py-3 rounded-lg transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-indigo-700 cursor-pointer"
+                    tabIndex={4}
+                    disabled={processing}
+                    >
+                    {processing && <LoaderCircle className="h-4 w-4 animate-spin mr-2 inline-block" />}
+                    Log in
                     </Button>
+
                 </div>
 
                 <div className="text-center text-sm text-muted-foreground">

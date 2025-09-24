@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 //import echo from "../../echo"; // file konfigurasi
-import echo from "resources/js/echo";
+import echo from '@/echo'; 
 
 type UserNotificationEvent = {
   title: string;

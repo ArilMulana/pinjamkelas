@@ -9,19 +9,13 @@ services:
     container_name: pinjamkelas-app
     restart: unless-stopped
     ports:
-      - "8000:80" # laravel
-      - "5173:5173" #vite
+      - "8001:80"    # laravel
+      - "5174:5174"  # vite
     volumes:
-      # Mount source code untuk develop
       - ./:/var/www/html
-      # Named volume untuk composer/vendor
-      - app_vendor:/var/www/html/vendor
-      # Named volume untuk node_modules (frontend)
-      - app_node_modules:/var/www/html/node_modules
-      # Named volume untuk storage
-      - app_storage:/var/www/html/storage
+      - .vhost.conf:/etc/apache2/sites-available/000-default.conf
     environment:
-        APACHE_DOCUMENT_ROOT: /var/www/html/public
+      APACHE_DOCUMENT_ROOT: /var/www/html/public
     networks:
       - laravel
 
@@ -30,20 +24,17 @@ services:
     container_name: pinjamkelas-db
     restart: unless-stopped
     environment:
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      # MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       MYSQL_DATABASE: pinjamkelas
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
-      - dbdata:/var/lib/mysql
+      - /var/lib/database/pinjamkelas:/var/lib/mysql
     networks:
       - laravel
-
-volumes:
-  dbdata:
-  app_vendor:
-  app_node_modules:
-  app_storage:
 
 networks:
   laravel:

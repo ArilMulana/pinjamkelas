@@ -20,51 +20,53 @@ export default function Welcome() {
            <div className="flex min-h-screen flex-col bg-[#FDFDFC] text-[#1b1b18] dark:bg-[#0a0a0a] dark:text-[#EDEDEC]">
 
   {/* Navbar */}
-  <header className="w-full bg-[#FDFDFC] shadow-md dark:bg-[#18181b]">
-    <nav className="flex justify-between items-center p-4 max-w-screen-xl mx-auto">
-      {/* Logo or Title */}
-      <div className="text-2xl font-semibold text-[#1b1b18] dark:text-[#EDEDEC]">
-        <span>My App</span>
-      </div>
+ <header className="w-full bg-gradient-to-r from-indigo-500 via-teal-400 to-indigo-600 shadow-lg dark:from-gray-800 dark:via-gray-900 dark:to-black">
+  <nav className="flex flex-wrap justify-between items-center p-4 max-w-screen-xl mx-auto">
+    {/* Logo */}
+    <div className="text-3xl font-extrabold text-white select-none">
+      My App
+    </div>
 
-      {/* Navigation Links */}
-      <div className="flex gap-6">
-        {auth.user ? (
-          <>
-            {auth.user.role_id === 1 && (
-              <Link
-                href={route('dashboard')}
-                className="text-[#1b1b18] dark:text-[#EDEDEC] hover:text-indigo-600"
-              >
-                Dashboard
-              </Link>
-            )}
-            <button
-              onClick={handleLogout}
-              className="text-[#1b1b18] dark:text-[#EDEDEC] hover:text-indigo-600"
-            >
-              Logout
-            </button>
-          </>
-        ) : (
-          <>
+    {/* Navigation Links */}
+    <div className="flex flex-wrap items-center gap-6 sm:gap-8">
+      {auth.user ? (
+        <>
+          {auth.user.role_id === 1 && (
             <Link
-              href={route('login')}
-              className="text-[#1b1b18] dark:text-[#EDEDEC] hover:text-indigo-600"
+              href={route('dashboard')}
+              className="text-white hover:text-teal-300 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-teal-300 rounded"
             >
-              Log in
+              Dashboard
             </Link>
-            <Link
-              href={route('register')}
-              className="text-[#1b1b18] dark:text-[#EDEDEC] hover:text-indigo-600"
-            >
-              Register
-            </Link>
-          </>
-        )}
-      </div>
-    </nav>
-  </header>
+          )}
+          <button
+            onClick={handleLogout}
+            className="text-white hover:text-teal-300 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-teal-300 rounded"
+          >
+            Logout
+          </button>
+        </>
+      ) : (
+        <>
+          <Link
+            href={route('login')}
+            className="text-white hover:text-teal-300 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-teal-300 rounded"
+          >
+            Log in
+          </Link>
+          <Link
+            href={route('register')}
+            className="text-white hover:text-teal-300 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-teal-300 rounded"
+          >
+            Register
+          </Link>
+        </>
+      )}
+    </div>
+  </nav>
+</header>
+
+
 
   {/* Main Content */}
   <div className="flex flex-1 flex-col items-center justify-center p-6 lg:p-8">
@@ -84,7 +86,7 @@ export default function Welcome() {
         />
         <div className="carousel-item absolute opacity-0 transition-opacity duration-1000">
           <img
-            src="https://source.unsplash.com/800x300/?building"
+            // src="https://source.unsplash.com/800x300/?building"
             alt="Gedung 1"
             className="block w-full rounded-lg"
           />
@@ -101,7 +103,7 @@ export default function Welcome() {
         />
         <div className="carousel-item absolute opacity-0 transition-opacity duration-1000">
           <img
-            src="https://source.unsplash.com/800x300/?room"
+            // src="https://source.unsplash.com/800x300/?room"
             alt="Ruangan 2"
             className="block w-full rounded-lg"
           />
@@ -118,7 +120,7 @@ export default function Welcome() {
         />
         <div className="carousel-item absolute opacity-0 transition-opacity duration-1000">
           <img
-            src="https://source.unsplash.com/800x300/?clock,time"
+            // src="https://source.unsplash.com/800x300/?clock,time"
             alt="Jam 3"
             className="block w-full rounded-lg"
           />
