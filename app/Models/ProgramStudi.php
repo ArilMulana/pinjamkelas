@@ -23,7 +23,7 @@ class ProgramStudi extends Model
     public function mataKuliahs()
     {
         return $this->belongsToMany(
-            Matakuliah::class,
+            MataKuliah::class,
             'matakuliah_program_studi',   // nama tabel pivot
             'program_studi_id',           // FK ke program_studis
             'matakuliah_id'               // FK ke mata_kuliahs
