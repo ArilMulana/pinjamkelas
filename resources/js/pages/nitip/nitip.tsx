@@ -230,7 +230,7 @@ const totalBiaya = useMemo(() => durasiJam * 100000, [durasiJam]);
                 <tr key={item.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3">{(currentPage-1)*itemsPerPage + index +1}</td>
                   <td className="px-4 py-3">
-                    <img src={item.foto_hewan} alt="" className="w-12 h-12 rounded"/>
+                    <img src={`/storage/${item.foto_hewan}`}  alt="" className="w-12 h-12 rounded"/>
                   </td>
                   <td className="px-4 py-3">{item.jenis_hewan}</td>
                   <td className="px-4 py-3">{item.nama_pemilik}</td>
