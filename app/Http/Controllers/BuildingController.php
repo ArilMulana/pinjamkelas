@@ -23,9 +23,7 @@ class BuildingController extends Controller
     public function index()
     {
         $gedung = Building::all();
-
         return Inertia::render('building/index', [
-
         'gedungs' => $gedung,
         // bisa juga kirim data lain misal flash message dsb
          ]);
