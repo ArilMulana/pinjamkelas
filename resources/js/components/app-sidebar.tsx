@@ -16,12 +16,12 @@ import { Link, usePage } from '@inertiajs/react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
-//   {
-//     title: 'Dashboard',
-//     href: route('dashboard'), // Pastikan ini path relatif atau full URL sesuai kebutuhan
-//     routeName: 'dashboard',
-//     // icon: LayoutGrid,
-//   },
+  {
+    title: 'Dashboard',
+    href: route('dashboard'), // Pastikan ini path relatif atau full URL sesuai kebutuhan
+    routeName: 'dashboard',
+    // icon: LayoutGrid,
+  },
   {
     title:'Penitipan Hewan',
     href:route('nitip'),

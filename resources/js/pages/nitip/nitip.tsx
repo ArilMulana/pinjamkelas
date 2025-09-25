@@ -2,10 +2,11 @@ import { usePage, router } from '@inertiajs/react';
 import { useState, useMemo, useCallback } from 'react';
 import Swal from 'sweetalert2';
 import { format, parseISO } from 'date-fns';
-
+import { id } from 'date-fns/locale'; 
 interface Penitipan {
   id: number;
   foto_hewan: string;
+  nomor_penitipan:string;
   jenis_hewan: string;
   nama_pemilik: string;
   email_pemilik: string;
@@ -23,12 +24,14 @@ export function Nitip() {
   const [formData, setFormData] = useState<{
   foto_hewan: File | null;
   jenis_hewan: string;
+  nomor_penitipan:string;
   nama_pemilik: string;
   email_pemilik: string;
   waktu_penitipan: string;
   waktu_pengambilan: string;
 }>({
   foto_hewan: null,
+  nomor_penitipan:'',
   jenis_hewan: '',
   nama_pemilik: '',
   email_pemilik: '',
@@ -47,7 +50,8 @@ export function Nitip() {
       (d) =>
         d.jenis_hewan.toLowerCase().includes(search.toLowerCase()) ||
         d.nama_pemilik.toLowerCase().includes(search.toLowerCase()) ||
-        d.email_pemilik.toLowerCase().includes(search.toLowerCase())
+        d.email_pemilik.toLowerCase().includes(search.toLowerCase()) ||
+        d.nomor_penitipan.toLowerCase().includes(search.toLowerCase())
     );
   }, [search, penitipans]);
 
@@ -72,6 +76,7 @@ const openModal = (data: Penitipan | null = null) => {
     // Edit: hanya set waktu_pengambilan dan foto preview
     setFormData({
       foto_hewan: null, // tidak ubah foto saat edit
+      nomor_penitipan:data.nomor_penitipan,
       jenis_hewan: data.jenis_hewan,
       nama_pemilik: data.nama_pemilik,
       email_pemilik: data.email_pemilik,
@@ -83,6 +88,7 @@ const openModal = (data: Penitipan | null = null) => {
     // Create: semua field kosong, foto null
     setFormData({
       foto_hewan: null,
+      nomor_penitipan:'',
       jenis_hewan: '',
       nama_pemilik: '',
       email_pemilik: '',
@@ -98,6 +104,7 @@ const cancelModal = () => {
   setSelectedData(null);
   setFormData({
     foto_hewan: null,
+    nomor_penitipan:'',
     jenis_hewan: '',
     nama_pemilik: '',
     email_pemilik: '',
@@ -108,49 +115,55 @@ const cancelModal = () => {
 };
 
   // Submit Form
-  const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      setLoading(true);
+ const handleSubmit = useCallback(
+  (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-      const data = new FormData();
-      if (formData.foto_hewan) data.append('foto_hewan', formData.foto_hewan);
-      data.append('jenis_hewan', formData.jenis_hewan);
-      data.append('nama_pemilik', formData.nama_pemilik);
-      data.append('email_pemilik', formData.email_pemilik);
-      data.append('waktu_penitipan', formData.waktu_penitipan);
+    const data = new FormData();
+    if (formData.foto_hewan) data.append('foto_hewan', formData.foto_hewan);
+    data.append('jenis_hewan', formData.jenis_hewan);
+    data.append('nama_pemilik', formData.nama_pemilik);
+    data.append('email_pemilik', formData.email_pemilik);
+    data.append('waktu_penitipan', formData.waktu_penitipan);
+
+    // Menambahkan waktu_pengambilan hanya saat update (jika selectedData ada)
+    if (selectedData) {
+      // Jika sedang melakukan update, baru tambahkan waktu_pengambilan
       data.append('waktu_pengambilan', formData.waktu_pengambilan);
+    }
 
-      if (selectedData) {
-        // Update
-        router.post(`/dashboard/nitip/${selectedData.id}?_method=PUT`, data, {
-          onSuccess: () => {
-            Swal.fire('Berhasil', 'Data diperbarui', 'success');
-            setShowModal(false);
-            setLoading(false);
-          },
-          onError: () => {
-            Swal.fire('Gagal', 'Terjadi kesalahan', 'error');
-            setLoading(false);
-          },
-        });
-      } else {
-        // Create
-        router.post('/dashboard/nitip', data, {
-          onSuccess: () => {
-            Swal.fire('Berhasil', 'Data ditambahkan', 'success');
-            setShowModal(false);
-            setLoading(false);
-          },
-          onError: () => {
-            Swal.fire('Gagal', 'Terjadi kesalahan', 'error');
-            setLoading(false);
-          },
-        });
-      }
-    },
-    [formData, selectedData]
-  );
+    if (selectedData) {
+      // Update
+      router.post(`/dashboard/nitip/${selectedData.id}?_method=PUT`, data, {
+        onSuccess: () => {
+          Swal.fire('Berhasil', 'Data diperbarui', 'success');
+          setShowModal(false);
+          setLoading(false);
+        },
+        onError: () => {
+          Swal.fire('Gagal', 'Terjadi kesalahan', 'error');
+          setLoading(false);
+        },
+      });
+    } else {
+      // Create
+      router.post('/dashboard/nitip', data, {
+        onSuccess: () => {
+          Swal.fire('Berhasil', 'Data ditambahkan', 'success');
+          setShowModal(false);
+          setLoading(false);
+        },
+        onError: () => {
+          Swal.fire('Gagal', 'Terjadi kesalahan', 'error');
+          setLoading(false);
+        },
+      });
+    }
+  },
+  [formData, selectedData]
+);
+
 
   // Delete
   const handleDelete = useCallback((id: number) => {
@@ -172,11 +185,28 @@ const cancelModal = () => {
     });
   }, []);
 
+ const formatDateTime = useMemo(() => {
+    return (dateString: string): string => {
+      const options: Intl.DateTimeFormatOptions = {
+        weekday: 'long', // Nama hari lengkap
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false, // Format 24 jam
+      };
+
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat('id-ID', options).format(date);
+    };
+  }, [])
+
   const durasiJam = useMemo(() => {
   if (!selectedData || !formData.waktu_pengambilan) return 0;
 
   const start = new Date(selectedData.waktu_penitipan).getTime();
-  console.log(start);
+  //console.log(start);
   const end = new Date(formData.waktu_pengambilan).getTime();
   const diff = Math.max(end - start, 0); // pastikan tidak negatif
   const hours = Math.ceil(diff / (1000 * 60 * 60)); // durasi dalam jam dibulatkan ke atas
@@ -213,7 +243,7 @@ const totalBiaya = useMemo(() => durasiJam * 100000, [durasiJam]);
         <table className="min-w-full divide-y divide-gray-200 border rounded">
           <thead className="bg-gray-100">
             <tr>
-              {['No', 'Foto', 'Jenis Hewan', 'Nama Pemilik', 'Email', 'Waktu Penitipan', 'Waktu Pengambilan', 'Aksi'].map((head, idx) => (
+              {['No','Foto','Nomor Transaksi','Jenis Hewan', 'Nama Pemilik', 'Email', 'Waktu Penitipan', 'Waktu Pengambilan', 'Aksi'].map((head, idx) => (
                 <th key={idx} className="px-4 py-3 text-left text-xs font-medium uppercase">{head}</th>
               ))}
             </tr>
@@ -232,11 +262,14 @@ const totalBiaya = useMemo(() => durasiJam * 100000, [durasiJam]);
                   <td className="px-4 py-3">
                     <img src={`/storage/${item.foto_hewan}`}  alt="" className="w-12 h-12 rounded"/>
                   </td>
+                  <td className='px-4 py-3'>{item.nomor_penitipan}</td>
                   <td className="px-4 py-3">{item.jenis_hewan}</td>
                   <td className="px-4 py-3">{item.nama_pemilik}</td>
                   <td className="px-4 py-3">{item.email_pemilik}</td>
-                  <td className="px-4 py-3">{item.waktu_penitipan}</td>
-                  <td className="px-4 py-3">{item.waktu_pengambilan}</td>
+                  <td className="px-4 py-3">{formatDateTime(item.waktu_penitipan)}</td>
+                  <td className="px-4 py-3">
+                  {item.waktu_pengambilan ? formatDateTime(item.waktu_pengambilan) : '-'}
+                </td>
                   <td className="px-4 py-3 space-x-2">
                     <button onClick={() => openModal(item)} className="text-indigo-600 hover:text-indigo-800">Edit</button>
                     <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-800">Delete</button>
@@ -363,7 +396,7 @@ const totalBiaya = useMemo(() => durasiJam * 100000, [durasiJam]);
         />
         {formData.waktu_penitipan && (
           <p className="text-gray-500 text-sm mt-1">
-            {format(parseISO(formData.waktu_penitipan), 'dd/MM/yyyy HH:mm:ss')}
+                {format(parseISO(formData.waktu_penitipan), 'dd/MM/yyyy HH:mm:ss', { locale: id })}
           </p>
         )}
       </div>
@@ -384,7 +417,7 @@ const totalBiaya = useMemo(() => durasiJam * 100000, [durasiJam]);
         />
         {formData.waktu_pengambilan && (
           <p className="text-gray-500 text-sm mt-1">
-            {format(parseISO(formData.waktu_pengambilan), 'dd/MM/yyyy HH:mm:ss')}
+               {format(parseISO(formData.waktu_pengambilan), 'dd/MM/yyyy HH:mm:ss', { locale: id })}
           </p>
         )}
       </div>

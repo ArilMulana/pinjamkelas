@@ -28,13 +28,13 @@ class NitipHewanController extends Controller
     // Nomor Penitipan
     $tanggal = date('ymd', strtotime($request->waktu_penitipan));
     $jenis = strtoupper($request->jenis_hewan);
-
-    // Hitung nomor urut hewan yang sama pada tanggal yang sama
-    $count = NitipHewan::whereDate('waktu_penitipan', $request->waktu_penitipan)
+    $count = NitipHewan::whereDate('waktu_penitipan', $tanggal)
         ->where('jenis_hewan', $request->jenis_hewan)
-        ->count() + 1;
-
-    $nomor_penitipan = "{$tanggal}/{$jenis}/{$count}";
+        ->count();
+        
+    //dd($count);
+    $final = $count + 1;
+    $nomor_penitipan = "{$tanggal}/{$jenis}/{$final}";
 
     // Upload foto
     if ($request->hasFile('foto_hewan')) {
